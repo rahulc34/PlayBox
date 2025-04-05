@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { isEmailValid } from "../utils/validations.js";
 
 const registerUser = asyncHandler(async (req, res) => {
   //get user from the frontend by req body or url
@@ -46,12 +47,21 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //---checking for images
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  let coverImageLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
   }
 
+  //--upload on lcoudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
@@ -59,6 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to upload on cloudinary");
   }
 
+  //---creating the user
   const user = await User.create({
     fullname,
     avatar: avatar.url,
@@ -80,27 +91,5 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, createdUser, "User Registered successfully!!"));
 });
-
-function isEmailValid(email) {
-  const emailRegex =
-    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-  // Check if the email is defined and not too long
-  if (!email || email.length > 254) return false;
-
-  // Use a single regex check for the standard email parts
-  if (!emailRegex.test(email)) return false;
-
-  // Split once and perform length checks on the parts
-  const parts = email.split("@");
-  if (parts[0].length > 64) return false;
-
-  // Perform length checks on domain parts
-  const domainParts = parts[1].split(".");
-  if (domainParts.some((part) => part.length > 63)) return false;
-
-  // If all checks pass, the email is valid
-  return true;
-}
 
 export { registerUser };
