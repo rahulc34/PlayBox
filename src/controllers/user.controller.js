@@ -33,7 +33,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // else created response with -- details
   // remove passoword, refreshToken field from response
   // send response
-
+  console.log(req.body);
   const { fullname, username, email, password } = req.body;
   console.log(fullname, username, email, password);
 
@@ -119,6 +119,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //Retrieve the email and password from the request body
   const { email, username, password } = req.body;
 
+  console.log("login credentials-->", username, email, password);
   //Ensure both email and password are provided and not empty.
   if (!username?.trim() || !email?.trim()) {
     throw new ApiError(400, "username or email is required");
@@ -156,6 +157,8 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
+  console.log("user is logged in successfully-->", username);
+
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -191,10 +194,12 @@ const logoutUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
+  console.log("user is logged out ", req.user.username);
+
   return res
     .status(200)
-    .clearCookies("accessToken", options)
-    .clearCookies("refreshToken", options)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
     .json(new ApiResponse(200, {}, "User logged out!!"));
 });
 
