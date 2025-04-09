@@ -251,7 +251,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    throw new ApiError(500, "unable to decode");
+    throw new ApiError(401, error?.message || "evalid refresh token");
   }
 });
 
