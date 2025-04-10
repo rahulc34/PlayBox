@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { isEmailValid } from "../utils/validations.js";
 import { read } from "fs";
 import jwt from "jsonwebtoken";
+import { subscribe } from "diagnostics_channel";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -355,6 +356,78 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "coverImage is updated successfully"));
 });
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  if (!username?.trim()) {
+    throw new ApiError(400, "username is missing");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: username?.toLowerCase(),
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        as: "subscribers",
+        localField: "_id",
+        foreignField: "channel",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        as: "subscribedTo",
+        localField: "_id",
+        foreignField: "subscriber",
+      },
+    },
+    {
+      $addFields: {
+        subscribersCount: {
+          $size: "$subscribers",
+        },
+        channelsSubscribedToCount: {
+          $size: "$subscribedTo",
+        },
+        isSubscribed: {
+          $condition: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullname: 1,
+        username: 1,
+        subscribersCount: 1,
+        channelsSubscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1,
+      },
+    },
+  ]);
+
+  if (!channel?.length) {
+    throw new ApiError(400, "channel don't exist");
+  }
+
+  console.log(channel);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "fetched user profile successfully")
+    );
+});
+
+
 
 export {
   registerUser,
@@ -365,4 +438,5 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
+  getUserChannelProfile,
 };
