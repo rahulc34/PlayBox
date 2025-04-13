@@ -25,6 +25,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
+  console.log(req.files);
   //get user from the frontend by req body or url
   //username, email, password, fullname, avatar, coverImage,
   // implies validations on all field
@@ -38,7 +39,6 @@ const registerUser = asyncHandler(async (req, res) => {
   // send response
   console.log(req.body);
   const { fullname, username, email, password } = req.body;
-  console.log(fullname, username, email, password);
 
   // -- checking if fields are empty or not
   if (

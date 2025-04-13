@@ -5,24 +5,15 @@ import {
   registerUser,
   refreshAccessToken,
 } from "../controllers/user.controller.js";
-import upload from "../middlewares/multer.middleware.js";
+import { uploadImage } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import multer from "multer";
+import { ApiError } from "../utils/apiError.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 
-router.route("/register").post(
-  upload.fields([
-    {
-      name: "avatar",
-      maxCount: 1,
-    },
-    {
-      name: "coverImage",
-      maxCount: 1,
-    },
-  ]),
-  registerUser
-);
+router.route("/register").post(uploadImage, registerUser);
 
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
