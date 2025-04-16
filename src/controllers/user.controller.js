@@ -4,7 +4,6 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { isEmailValid } from "../utils/validations.js";
-import { read } from "fs";
 import jwt from "jsonwebtoken";
 import { subscribe } from "diagnostics_channel";
 
@@ -25,7 +24,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-  console.log(req.files);
   //get user from the frontend by req body or url
   //username, email, password, fullname, avatar, coverImage,
   // implies validations on all field
@@ -37,7 +35,6 @@ const registerUser = asyncHandler(async (req, res) => {
   // else created response with -- details
   // remove passoword, refreshToken field from response
   // send response
-  console.log(req.body);
   const { fullname, username, email, password } = req.body;
 
   // -- checking if fields are empty or not
@@ -121,8 +118,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
   //Retrieve the email and password from the request body
   const { email, username, password } = req.body;
-
-  console.log("login credentials-->", username, email, password);
   //Ensure both email and password are provided and not empty.
   if (!username?.trim() || !email?.trim()) {
     throw new ApiError(400, "username or email is required");
@@ -147,7 +142,7 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 
   // Create a JWT token for the user to maintain session authentication.
-  const { refreshToken, accessToken } = await generateAccessAndRefreshTokens(
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
     user._id
   );
 
@@ -182,22 +177,26 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   const user = req.user._id;
 
-  User.findOneAndUpdate(
+  console.log("logout controller -->", user._id);
+
+  await User.findOneAndUpdate(
     req.user?._id,
     {
-      $set: { refreshToken: undefined },
+      $unset: {
+        refreshToken: 1, //this remove the field from document
+      },
     },
     {
       new: true,
     }
   );
 
+  console.log("logout the user from database");
+
   const options = {
     httpOnly: true,
     secure: true,
   };
-
-  console.log("user is logged out ", req.user.username);
 
   return res
     .status(200)
@@ -208,15 +207,17 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken || req.body.refreshToken;
-
+  console.log("refreshing the token --> ", req.body.refreshToken);
   if (!token) {
     throw new ApiError(401, "unauthorized request");
   }
 
   try {
+    console.log("verifying the token-----");
     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 
-    const user = await User.findById(decoded?.id);
+    console.log("decoded the token ----", decoded);
+    const user = await User.findById(decoded?._id);
 
     if (!user) {
       throw new ApiError(401, "Invalid refresh token");
@@ -235,8 +236,19 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       user?._id
     );
 
-    console.log(user.username, " token is refreshed ");
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        $set: {
+          refreshToken,
+        },
+      },
+      {
+        new: true,
+      }
+    );
 
+    console.log("done refreshing the new token");
     return res
       .status(201)
       .cookie("accessToken", accessToken, options)
@@ -262,7 +274,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id);
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
 
-  if (isPasswordCorrect) {
+  if (!isPasswordCorrect) {
     throw new ApiError(400, "Invalid old password");
   }
 
@@ -275,26 +287,30 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  console.log("current user --> ", req.user);
   return res
     .status(200)
-    .json(200, req.user, "current user is fetched successfully");
+    .json(
+      new ApiResponse(200, req.user, "current user is fetched successfully")
+    );
 });
 
 const updateAccountDetails = asyncHandler(async (req, res) => {
-  const { fullname, email } = req.body;
+  const { username, fullname } = req.body;
 
-  if (!fullname || !email) {
+  if (!fullname || !username) {
     throw new ApiError(400, "all fields are required");
   }
 
   const user = await User.findByIdAndUpdate(
     req.user?._id,
     {
-      $set: [{ fullname }, { email }],
+      $set: { fullname, username },
     },
     { new: true }
   ).select("-password");
 
+  console.log("modefied user ", user);
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Account details updated successfully"));
@@ -303,6 +319,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
+  console.log("req file --> ", req.file);
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is missing");
   }
@@ -321,7 +338,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
       },
     },
     { new: true }
-  ).select("-password");
+  ).select("-password -refreshToken");
 
   return res
     .status(200)
@@ -330,7 +347,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
-
+  console.log("update cover image");
+  console.log(req.file);
   if (!coverImageLocalPath) {
     throw new ApiError(400, "coverImage file is missing");
   }
@@ -363,9 +381,10 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "username is missing");
   }
 
+  console.log("displaying the channel profile of ", username);
   const channel = await User.aggregate([
     {
-      $match: username?.toLowerCase(),
+      $match: { username },
     },
     {
       $lookup: {
@@ -413,6 +432,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
     },
   ]);
+
+  console.log(channel);
 
   if (!channel?.length) {
     throw new ApiError(400, "channel don't exist");
@@ -492,6 +513,7 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
+  updateUserCoverImage,
   getUserChannelProfile,
   getWatchHistory,
 };
