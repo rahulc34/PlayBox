@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { isEmailValid } from "../utils/validations.js";
 import jwt from "jsonwebtoken";
 import { subscribe } from "diagnostics_channel";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -382,6 +383,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   }
 
   console.log("displaying the channel profile of ", username);
+
   const channel = await User.aggregate([
     {
       $match: { username },
@@ -407,11 +409,11 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         subscribersCount: {
           $size: "$subscribers",
         },
-        channelsSubscribedToCount: {
+        subscribedToCount: {
           $size: "$subscribedTo",
         },
-        isSubscribed: {
-          $condition: {
+        isSubscibed: {
+          $cond: {
             if: { $in: [req.user?._id, "$subscribers.subscriber"] },
             then: true,
             else: false,
@@ -423,12 +425,12 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       $project: {
         fullname: 1,
         username: 1,
-        subscribersCount: 1,
-        channelsSubscribedToCount: 1,
-        isSubscribed: 1,
+        email: 1,
         avatar: 1,
         coverImage: 1,
-        email: 1,
+        subscribersCount: 1,
+        subscribedToCount: 1,
+        isSubscibed: 1,
       },
     },
   ]);
@@ -439,8 +441,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "channel don't exist");
   }
 
-  console.log(channel);
-
   res
     .status(200)
     .json(
@@ -449,6 +449,8 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
+  console.log("user watch history -> ", req.user?._id, req.user?.username);
+
   const user = await User.aggregate([
     {
       $match: {
