@@ -38,6 +38,8 @@ const registerUser = asyncHandler(async (req, res) => {
   // send response
   const { fullname, username, email, password } = req.body;
 
+  console.log("registering user -->", username, email, password, fullname);
+  console.log(req.files);
   // -- checking if fields are empty or not
   if (
     [fullname, email, username, password].some((field) => field?.trim() === "")
