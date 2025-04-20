@@ -19,6 +19,12 @@ const storage = multer.diskStorage({
 
 // applying video filter of mp4,
 const videoFilter = (req, file, cb) => {
+  if (file.fieldname === "thumbnail") {
+    if (file.size > 10 * 1024 * 1024) {
+      return cb("Thumbnail size exceeds 15MB");
+    }
+    return cb(null, true);
+  }
   const allowedFileType = [
     "video/mp4",
     "video/mov",

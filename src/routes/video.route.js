@@ -19,8 +19,12 @@ router
   .route("/")
   .get(getAllVideos)
   .post(
-    uploadHandler(uploadVideo.single("videoFile")),
-    uploadHandler(uploadImage.single("thumbnail")),
+    uploadHandler(
+      uploadVideo.fields([
+        { name: "videoFile", maxCount: 1 },
+        { name: "thumbnail", maxCount: 1 },
+      ])
+    ), // Handles the "thumbnail" and video field
     publishAVideo
   );
 
