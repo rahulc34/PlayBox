@@ -11,8 +11,125 @@ import {
 import { title } from "process";
 
 const getAllVideos = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
   //TODO: get all videos based on query, sort, pagination
+  // page ---> for which page the user is on ie, 1, 2, 3, ---
+  // limit ---> no. of documents per page by default 10
+  // sortType if for sorting order i.e ascending or descending
+  // sortBy ----> sort by the upload date or views or duration
+  // duration ---> sort, medium , long
+  // userId ---> for getting videos of a user. when vieving the channel
+  // channel ---> channel search
+  const {
+    page = 1,
+    limit = 10,
+    sortType = "desc",
+    sortBy = "createdAt",
+    duration,
+    userId,
+    query,
+  } = req.query;
+
+  console.log(query);
+  const filter = {};
+
+  // filter on getting all video of user ---> request by any user to see his or others videos account
+  if (userId) {
+    filter.owner = userId;
+  }
+
+  // filter on query done by any user in search field
+  if (query) {
+    filter.$text = {
+      $search: query,
+      $caseSensitive: false,
+    };
+  }
+
+  // filter on duration of query videos
+  if (duration) {
+    if (duration === "short") {
+      // Less than 4 minutes
+      filter.duration = { $lt: 4 };
+    } else if (duration === "medium") {
+      // Between 4 and 20 minutes
+      filter.duration = { $gte: 4, $lte: 20 };
+    } else if (duration === "long") {
+      // Greater than 20 minutes
+      filter.duration = { $gt: 20 };
+    }
+  }
+
+  //sorting order
+  const sortOrder = sortType === "asc" ? 1 : -1;
+  const sortOptions = {
+    [sortBy]: sortOrder,
+  };
+
+  //paginations options
+  const skip = (page - 1) * limit;
+
+  // pipeline for query
+  const pipeline = [
+    { $match: filter },
+    { $sort: sortOptions },
+    { $skip: parseInt(skip) },
+    { $limit: parseInt(limit) },
+  ];
+
+  if (!userId) {
+    pipeline.push(
+      {
+        $lookup: {
+          from: "users",
+          localField: "owner",
+          foreignField: "_id",
+          as: "ownerInfo",
+        },
+      },
+      {
+        $unwind: "$ownerInfo", // Unwind the ownerInfo array to get a single object
+      },
+      {
+        $project: {
+          _id: 1,
+          videoFile: 1,
+          thumbnail: 1,
+          isPublished: 1,
+          title: 1,
+          description: 1,
+          duration: 1,
+          views: 1,
+          createdAt: 1,
+          owner: 1,
+          "ownerInfo.username": 1, // Include specific user fields
+          "ownerInfo.avatar": 1,
+          "ownerInfo.fullname": 1, // Include specific user fields
+        },
+      }
+    );
+  }
+
+  // get videos from database
+  const videos = await Video.aggregate(pipeline);
+
+  //count all documents
+  const totalVideos = await Video.countDocuments(filter);
+
+  //return the response
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        videos,
+        pagination: {
+          total: totalVideos,
+          page: parseInt(page),
+          limit: parseInt(limit),
+        },
+      },
+      "Video is fetched successfully"
+    )
+  );
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
