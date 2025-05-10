@@ -92,7 +92,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
       {
         $project: {
           _id: 1,
-          videoFile: 1,
+          videoFile: 1,   // remove this later bcz user will see video when he click and fetch video from db by videoid
           thumbnail: 1,
           isPublished: 1,
           title: 1,
