@@ -4,11 +4,10 @@ import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { isValidElement } from "react";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description } = req.body;
-  const owner = req.user._id;
+  const owner = req.user._id.toString();
   //TODO: create playlist
   // check is name is valid
   // check if user is creating playlist with name he already created
@@ -21,7 +20,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
   //checking if user is making using duplicate name of playlist
   const isPlaylistExist = await Playlist.findOne({ name, owner });
-  if (!isPlaylistExist) {
+  if (isPlaylistExist) {
     throw new ApiError(400, "this name is already exist");
   }
 
@@ -35,7 +34,9 @@ const createPlaylist = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(200, createPlaylist, `playlist is created successfully`);
+    .json(
+      new ApiResponse(200, createdPlaylist, `playlist is created successfully`)
+    );
 });
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
@@ -47,7 +48,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "invalid user ID");
   }
-  if (userId !== req.user._id) {
+  if (userId !== req.user._id.toString()) {
     throw new ApiError(404, "Unauthourize access");
   }
 
@@ -62,7 +63,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  const owner = req.user._id;
+  const owner = req.user._id.toString();
   //TODO: get playlist by id
   // check if playlist id is valid mongodb id
   // find the playlist in db
@@ -73,27 +74,72 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "invalid playlist ID");
   }
 
-  const playlistDetail = await Playlist.findOne({ _id: playlistId });
-
-  if (!playlistDetail) {
-    throw new ApiError(400, "Playlist doesn't exits");
+  const isPlaylistExist = await Playlist.findOne({ _id: playlistId, owner });
+  if (!isPlaylistExist) {
+    throw new ApiError(400, "Playlist doesn't exists or unauthorized access");
   }
 
-  if (playlistDetail.owner.toString() !== owner) {
-    throw new ApiError(403, "Unauthorize access");
+  const playlist = await Playlist.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(playlistId) },
+    },
+    {
+      $lookup: {
+        as: "videos",
+        localField: "videos",
+        foreignField: "_id",
+        from: "videos",
+        pipeline: [
+          {
+            $lookup: {
+              as: "owner",
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+            },
+          },
+          {
+            $unwind: "$owner",
+          },
+          {
+            $project: {
+              _id: 1,
+              title: 1,
+              description: 1,
+              videoFile:1,
+              thumbnail:1,
+              "owner.fullname": 1,
+              "owner.username": 1,
+              "owner.avatar": 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        videos: 1,
+      },
+    },
+  ]);
+
+  if (!playlist.length) {
+    throw new ApiError(404, "Playlist not found");
   }
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, playlistDetail, "playlist is fetched successfully")
+      new ApiResponse(200, playlist[0], "playlist is fetched successfully")
     );
 });
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
   const userId = req.user._id;
-
   // check if playlist id or videoId is valid
   // check if playlist is exit
   // check if video is exist
@@ -102,16 +148,16 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
   //validating the database id of mongodb
   if (!isValidObjectId(playlistId)) {
-    throw new ApiError(400, `invalid playlist Id`);
+    throw new ApiError(400, `invalid playlistId`);
   }
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "invalid videoId");
   }
 
-  //checking teh playlist exist or user is authorized
+  // checking teh playlist exist or user is authorized
   const playlist = await Playlist.findOne({ _id: playlistId, owner: userId });
   if (!playlist) {
-    throw new ApiError(404, "playlist is not found or unauthorized error");
+    throw new ApiError(404, "playlist is not exist or unauthorized error");
   }
 
   // check if video is already in the playlist
@@ -120,7 +166,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   }
 
   // check if video is exist in video collection
-  const existedVideo = await Video.findOne(videoId);
+  const existedVideo = await Video.findOne({ _id: videoId });
   if (!existedVideo) {
     throw new ApiError(400, "Video is not existed");
   }
@@ -161,12 +207,18 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "playlist is not exist");
   }
 
-  playlist.videos = playlist.videos.filter((id) => id !== videoId);
+  playlist.videos = playlist.videos.filter((id) => id.toString() !== videoId);
   await playlist.save();
 
   return res
     .status(200)
-    .json(200, playlist, "video is deleted from playlist successfully");
+    .json(
+      new ApiResponse(
+        200,
+        playlist,
+        "video is deleted from playlist successfully"
+      )
+    );
 });
 
 const deletePlaylist = asyncHandler(async (req, res) => {
@@ -205,7 +257,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   // update the name or description
   // return the response
 
-  if (!isValidElement(playlistId)) {
+  if (!isValidObjectId(playlistId)) {
     throw new ApiError(400, "invalid playlist ID");
   }
 

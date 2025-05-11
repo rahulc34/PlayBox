@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-import { refreshAccessToken } from "../controllers/user.controller";
 
 const subscriptionSchema = new Schema(
   {

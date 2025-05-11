@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { isEmailValid } from "../utils/validations.js";
 import jwt from "jsonwebtoken";
 import { subscribe } from "diagnostics_channel";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -457,6 +457,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     {
       $match: {
         _id: new mongoose.Types.ObjectId(req.user?._id),
+        owner: new mongoose.Types.ObjectId(owner),
       },
     },
     {
