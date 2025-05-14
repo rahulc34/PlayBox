@@ -70,7 +70,7 @@ const updateTweet = asyncHandler(async (req, res) => {
   const userId = req.user?._id?.toString();
   //TODO: update tweet
 
-  if (!content || !content.trim()) {
+  if (!content?.trim()) {
     throw new ApiError(400, "tweet should not be empty");
   }
 
@@ -88,6 +88,13 @@ const updateTweet = asyncHandler(async (req, res) => {
   }
   if (tweet.owner.toString() !== userId) {
     throw new ApiError(404, "you are not authorized");
+  }
+
+  // check if samw content is tweet
+  if (tweet.content.trim() === content.trim()) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, tweet, "content is already uptodate"));
   }
 
   // update the tweet
