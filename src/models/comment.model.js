@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
-import { refreshAccessToken } from "../controllers/user.controller";
 
 const commentSchema = new Schema(
   {
