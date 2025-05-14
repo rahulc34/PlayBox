@@ -15,3 +15,4 @@ const tweetSchema = new Schema(
 );
 
 export const Tweet = new mongoose.model("Tweet", likeSchema);
+

@@ -1,8 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Comment } from "../models/comment.model.js";
 import { Video } from "../models/video.model.js";
-import { ApiError } from "../utils/apiError.js";
-import { ApiResponse } from "../utils/apiResponse.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const getVideoComments = asyncHandler(async (req, res) => {
@@ -145,15 +145,10 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid comment iD");
   }
 
-  // check if comment id exist
-  const comment = await Comment.findById(commentId);
-  if (!comment) {
-    throw new ApiError(400, "commnet does not exist");
-  }
-
-  // Check if the comment belongs to the user
-  if (comment.owner.toString() !== owner) {
-    throw new ApiError(403, "You are not authorized to update this comment");
+  // validating the comment
+  const comment = await Comment.findOne({_id:commentId, owner})
+  if(!comment){
+    throw new ApiError(400, "comment not found or you are not authorized to delete the comment")
   }
 
   // Avoid saving if the content is unchanged
@@ -189,21 +184,10 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user Id");
   }
 
-  // find the comment from the database
-  const comment = await Comment.findById(commentId);
+  // deleting the comment
+  const comment = await Comment.findOneAndDelete({ _id: commentId, owner });
   if (!comment) {
-    throw new ApiError(400, "comment doesn't exist");
-  }
-
-  // Check if the comment belongs to the user
-  if (comment.owner.toString() !== owner) {
-    throw new ApiError(403, "You are not authorized to delete this comment");
-  }
-
-  // Deleting the comment
-  const response = await Comment.findByIdAndDelete(commentId);
-  if (!response) {
-    throw new ApiError(500, "Error occurred while deleting the comment");
+    throw new ApiError("comment does not exist or not authorized to delete it");
   }
 
   return res
