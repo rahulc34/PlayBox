@@ -23,7 +23,7 @@ import subscriptionRouter from "./routes/subscription.route.js";
 import playlistRouter from "./routes/playlist.route.js";
 import commentRouter from "./routes/comment.route.js";
 import tweetRouter from "./routes/tweet.routes.js";
-import likeRouter from "./routes/like.routes.js";
+import likeRouter from "./routes/like.route.js";
 import healthcheckRouter from "./routes/healthcheck.route.js";
 import dashboardRouter from "./routes/dashboard.route.js";
 

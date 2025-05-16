@@ -146,9 +146,12 @@ const updateComment = asyncHandler(async (req, res) => {
   }
 
   // validating the comment
-  const comment = await Comment.findOne({_id:commentId, owner})
-  if(!comment){
-    throw new ApiError(400, "comment not found or you are not authorized to delete the comment")
+  const comment = await Comment.findOne({ _id: commentId, owner });
+  if (!comment) {
+    throw new ApiError(
+      400,
+      "comment not found or you are not authorized to delete the comment"
+    );
   }
 
   // Avoid saving if the content is unchanged
@@ -184,11 +187,36 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid user Id");
   }
 
-  // deleting the comment
-  const comment = await Comment.findOneAndDelete({ _id: commentId, owner });
+  // get the comment from db
+  const comment = await Comment.findById(commentId);
   if (!comment) {
-    throw new ApiError("comment does not exist or not authorized to delete it");
+    throw new ApiError("comment does not exist");
   }
+
+  //check if owner is deleting the comment
+  if (comment.owner === owner) {
+    await Comment.findByIdAndDelete(commentId);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "comment deleted succsessfully"));
+  }
+
+  // get the video owner, who want to delete
+  const videoId = comment.video;
+  if (!videoId || !isValidObjectId(videoId)) {
+    throw new ApiError(400, null, "comment deleted succsessfully");
+  }
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(400, "video does not exist");
+  }
+
+  if (video.owner !== owner) {
+    throw new ApiError(400, "you are not authorized to delete this comment");
+  }
+
+  await video.findByIdAndDelete(commentId);
 
   return res
     .status(200)
