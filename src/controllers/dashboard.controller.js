@@ -5,6 +5,7 @@ import { Like } from "../models/like.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { User } from "../models/user.model.js";
 
 const getChannelStats = asyncHandler(async (req, res) => {
   // TODO: Get the channel stats like total video views, total subscribers, total videos, total likes etc.
@@ -13,12 +14,16 @@ const getChannelStats = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid Object Id");
   }
 
+  const userDetails = await User.findById(userId).select(
+    "-password -watchHistory -refreshToken -accessToken"
+  );
+
   const totalSubscribers = await Subscription.countDocuments({
     channel: userId,
   });
   const latestVideos = await Video.aggregate([
     { $match: { owner: new mongoose.Types.ObjectId(userId) } },
-    { $sort: { createdAt: -1 } },
+    { $sort: { createdAt: 1 } },
     { $limit: 5 },
     {
       $lookup: {
@@ -75,6 +80,7 @@ const getChannelStats = asyncHandler(async (req, res) => {
     totalSubscribers,
     totalViews: viewsCount,
     totalvideos: videosCount,
+    userDetails,
     latestVideos,
   };
 
@@ -89,7 +95,7 @@ const getChannelVideos = asyncHandler(async (req, res) => {
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "Invalid Object Id");
   }
-  
+
   const videos = await Video.aggregate([
     { $match: { owner: new mongoose.Types.ObjectId(userId) } },
     {
@@ -128,7 +134,11 @@ const getChannelVideos = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, videos , "videos is fetched successfully")
+      new ApiResponse(
+        200,
+        { videos, totalVideo: videos?.length || 0 },
+        "videos is fetched successfully"
+      )
     );
 });
 

@@ -44,6 +44,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         video: 1,
         username: 1,
         avatar: 1,
+        owner:1,
         createdAt: 1,
       },
     },
@@ -150,7 +151,7 @@ const updateComment = asyncHandler(async (req, res) => {
   if (!comment) {
     throw new ApiError(
       400,
-      "comment not found or you are not authorized to delete the comment"
+      "comment not found or you are not authorized to update the comment"
     );
   }
 
@@ -194,7 +195,7 @@ const deleteComment = asyncHandler(async (req, res) => {
   }
 
   //check if owner is deleting the comment
-  if (comment.owner === owner) {
+  if (comment.owner?.toString() === owner) {
     await Comment.findByIdAndDelete(commentId);
     return res
       .status(200)
@@ -212,11 +213,11 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "video does not exist");
   }
 
-  if (video.owner !== owner) {
+  if (video.owner?.toString() !== owner) {
     throw new ApiError(400, "you are not authorized to delete this comment");
   }
 
-  await video.findByIdAndDelete(commentId);
+  await Video.findByIdAndDelete(commentId);
 
   return res
     .status(200)

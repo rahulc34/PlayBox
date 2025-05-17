@@ -6,6 +6,7 @@ import { Tweet } from "../models/tweet.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
+import { pipeline } from "stream";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -21,19 +22,34 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "video does not exist");
   }
 
+  const countLike = await Like.countDocuments({
+    video: new mongoose.Types.ObjectId(videoId),
+  });
   const like = await Like.findOne({ video: videoId, likedBy: userId });
   if (!like) {
     const createdLike = await Like.create({ video: videoId, likedBy: userId });
     return res
       .status(200)
-      .json(new ApiResponse(200, null, `video is Liked successfully`));
+      .json(
+        new ApiResponse(
+          200,
+          { like: countLike + 1 },
+          `video is Liked successfully`
+        )
+      );
   }
 
   const dislike = await Like.deleteOne({ video: videoId, likedBy: userId });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, `video is dislike successfully`));
+    .json(
+      new ApiResponse(
+        200,
+        { like: countLike >= 0 ? countLike - 1 : 0 },
+        `video is dislike successfully`
+      )
+    );
 });
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
@@ -49,6 +65,11 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "comment does not exist");
   }
 
+  const countLike = await Like.countDocuments({
+    comment: { $existed: true },
+    comment: new mongoose.Types.ObjectId(commentId),
+  });
+
   const like = await Like.findOne({ comment: commentId, likedBy: userId });
   if (!like) {
     const createdLike = await Like.create({
@@ -57,14 +78,26 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     });
     return res
       .status(200)
-      .json(new ApiResponse(200, null, `comment is Liked successfully`));
+      .json(
+        new ApiResponse(
+          200,
+          { likes: countLike + 1 },
+          `comment is Liked successfully`
+        )
+      );
   }
 
   const dislike = await Like.deleteOne({ comment: commentId, likedBy: userId });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, `comment is dislike successfully`));
+    .json(
+      new ApiResponse(
+        200,
+        { likes: countLike > 0 ? countLike - 1 : 0 },
+        `comment is dislike successfully`
+      )
+    );
 });
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
@@ -80,19 +113,32 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     throw new ApiError(404, "tweet does not exist");
   }
 
+  const likeCount = await Like.countDocuments({ tweet: tweetId });
   const like = await Like.findOne({ tweet: tweetId, likedBy: userId });
   if (!like) {
     const createdLike = await Like.create({ tweet: tweetId, likedBy: userId });
     return res
       .status(200)
-      .json(new ApiResponse(200, null, `tweet is Liked successfully`));
+      .json(
+        new ApiResponse(
+          200,
+          { likes: likeCount + 1 },
+          `tweet is Liked successfully`
+        )
+      );
   }
 
   const dislike = await Like.deleteOne({ tweet: tweetId, likedBy: userId });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, null, `tweet is dislike successfully`));
+    .json(
+      new ApiResponse(
+        200,
+        { likes: likeCount ? likeCount - 1 : 0 },
+        `tweet is dislike successfully`
+      )
+    );
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
@@ -113,19 +159,32 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         from: "videos",
         localField: "video",
         foreignField: "_id",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              thumbnail: 1,
+              owner: 1,
+              title: 1,
+              description: 1,
+              duration: 1,
+              views: 1,
+              likeCounts: 1,
+              isPublished: 1,
+              createdAt: 1,
+            },
+          },
+        ],
       },
     },
     {
       $unwind: "$videoList",
     },
-    {
-      $replaceRoot: { newRoot: "$videoDetails" },
-    },
   ]);
 
   return res
     .status(200)
-    .json(200, likes, "liked video is fetched successfully");
+    .json(new ApiResponse(200, likes, "liked video is fetched successfully"));
 });
 
 export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
