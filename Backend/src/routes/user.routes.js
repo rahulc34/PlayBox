@@ -20,24 +20,23 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 
-router.route("/register").post(
-  uploadHandler(
-    uploadImage.fields([
-      { name: "avatar", maxCount: 1 },
-      { name: "coverImage", maxCount: 1 },
-    ])
-  ),
-  registerUser
-);
+router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refreshToken").post(refreshAccessToken);
-router.route("/change-password").post(verifyJWT, changeCurrentPassword);
+router.route("/sendOtp").post();
+router.route("verify-Otp").post();
+router.route("/change-password").post(changeCurrentPassword);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
+router.route("/verify-userEmail").post();
 router.route("/update-account").patch(verifyJWT, updateAccountDetails);
 router
   .route("/avatar")
-  .patch(verifyJWT, uploadHandler(uploadImage.single("avatar")), updateUserAvatar);
+  .patch(
+    verifyJWT,
+    uploadHandler(uploadImage.single("avatar")),
+    updateUserAvatar
+  );
 router
   .route("/coverImage")
   .patch(

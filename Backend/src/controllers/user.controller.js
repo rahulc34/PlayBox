@@ -28,9 +28,6 @@ const registerUser = asyncHandler(async (req, res) => {
   //get user from the frontend by req body or url
   //username, email, password, fullname, avatar, coverImage,
   // implies validations on all field
-  // check for images and avatar
-  // upload them to the cloudinary
-  // get the url of images fromm response
   // create user object - create entry in db
   // if error return user not created response
   // else created response with -- details
@@ -39,7 +36,6 @@ const registerUser = asyncHandler(async (req, res) => {
   const { fullname, username, email, password } = req.body;
 
   console.log("registering user -->", username, email, password, fullname);
-  console.log(req.files);
   // -- checking if fields are empty or not
   if (
     [fullname, email, username, password].some((field) => field?.trim() === "")
@@ -64,48 +60,25 @@ const registerUser = asyncHandler(async (req, res) => {
     );
   }
 
-  //---checking for images
-  const avatarLocalPath = req.files?.avatar[0]?.path;
-  // const coverImageLocalPath = req.files?.coverImage[0]?.path;
-  let coverImageLocalPath;
-  if (
-    req.files &&
-    Array.isArray(req.files.coverImage) &&
-    req.files.coverImage.length > 0
-  ) {
-    coverImageLocalPath = req.files.coverImage[0].path;
-  }
-
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar file is required");
-  }
-
-  //--upload on lcoudinary
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-
-  if (!avatar) {
-    throw new ApiError(500, "Failed to upload on cloudinary");
-  }
-
   //---creating the user
   const user = await User.create({
     fullname,
-    avatar: avatar.url,
-    coverImage: coverImage?.url || "",
+    avatar: "",
+    coverImage: "",
     email,
     password,
     username: username.toLowerCase(),
   });
 
   const createdUser = await User.findById(user?._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken -watchHistory"
   );
 
   if (!createdUser) {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
 
+  console.log("resistered user", username);
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User Registered successfully!!"));
@@ -120,20 +93,21 @@ const loginUser = asyncHandler(async (req, res) => {
   //send cookies
 
   //Retrieve the email and password from the request body
-  const { email, username, password } = req.body;
+  const { email, password } = req.body;
+  console.log("body-->", req.body);
   //Ensure both email and password are provided and not empty.
-  if (!username?.trim() || !email?.trim()) {
-    throw new ApiError(400, "username or email is required");
+  if (!password?.trim() || !email?.trim()) {
+    throw new ApiError(400, "email or password is required");
   }
 
   //Query the database to find a user with the provided email or username
   const user = await User.findOne({
-    $or: [{ email }, { username }],
+    email,
   });
 
   //f no user is found, throw an error indicating invalid credentials.
   if (!user) {
-    throw new ApiError(400, "user has not exist");
+    throw new ApiError(400, "user not exist");
   }
 
   //Compare the provided password with the stored hashed password using a password hashing library (e.g., bcrypt).
@@ -150,7 +124,7 @@ const loginUser = asyncHandler(async (req, res) => {
   );
 
   const loggedInUser = await User.findById(user._id).select(
-    "-password -refreshToken"
+    "-password -refreshToken -watchHistory"
   );
 
   const options = {
@@ -158,8 +132,7 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  console.log("user is logged in successfully-->", username);
-
+  console.log("user is logged in successfully-->");
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -210,7 +183,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken || req.body.refreshToken;
-  console.log("refreshing the token --> ", req.body.refreshToken);
+  console.log("refreshing the token --> ", token);
   if (!token) {
     throw new ApiError(401, "unauthorized request");
   }
@@ -290,7 +263,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  console.log("current user --> ", req.user);
+  console.log("current user --> ", req.user?.username);
   return res
     .status(200)
     .json(

@@ -8,7 +8,7 @@ const connectDB = async () => {
     const uri = `${process.env.MONGODB_URI}/${DB_NAME}`;
     const localURI = `${process.env.LOCAL_MONGODB_URI}/${DB_NAME}`;
     console.log(uri);
-    const connectionInstance = await mongoose.connect(uri);
+    const connectionInstance = await mongoose.connect(localURI);
 
     console.log(
       `/n Database is connected successfully !! DB Host ${connectionInstance.connection.host}`

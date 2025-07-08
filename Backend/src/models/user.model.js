@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { type } from "os";
 
 const userSchema = new Schema(
   {
@@ -27,11 +28,9 @@ const userSchema = new Schema(
     },
     avatar: {
       type: String, //cloudinary url
-      required: true,
     },
     coverImage: {
       type: String,
-      required: true,
     },
     password: {
       type: String,
@@ -40,6 +39,26 @@ const userSchema = new Schema(
     watchHistory: [{ type: Schema.Types.ObjectId, ref: "Video" }],
     refreshToken: {
       type: String,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verifyEmail: {
+      resetOtp: {
+        type: String,
+      },
+      resetOtpExpiry: {
+        type: Number,
+      },
+    },
+    resetPassword: {
+      resetOtp: {
+        type: String,
+      },
+      resetOtpExpiry: {
+        type: Number,
+      },
     },
   },
   {
