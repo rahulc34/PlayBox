@@ -7,6 +7,7 @@ import { isEmailValid } from "../utils/validations.js";
 import jwt from "jsonwebtoken";
 import { subscribe } from "diagnostics_channel";
 import mongoose, { mongo } from "mongoose";
+import { transporter } from "../middlewares/nodemailer.middleware.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -242,6 +243,62 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new ApiError(401, error?.message || "evalid refresh token");
   }
+});
+
+const sendOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  console.log("send otp -> ", email);
+  if (!isEmailValid(email)) {
+    throw new ApiError(400, "Email is not valid");
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(400, "Email not found");
+  }
+
+  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
+
+  if (resetOtp && resetOtpExpiry && resetOtpExpiry > Date.now()) {
+    throw new ApiError(
+      400,
+      `Otp is already send. Please try after ${(resetOtpExpiry - Date.now()) / 1000} seconds`
+    );
+  }
+
+  const max = 999999;
+  const min = 100000;
+  const generateOtp = Math.floor(Math.random() * (max - min + 1)) + min;
+  console.log(generateOtp);
+
+  const mailOptions = {
+    from: process.env.NODEMAILER_EMAIL,
+    to: email,
+    subject: "Reset Password",
+    text: `otp : ${generateOtp} valid till 5min`,
+  };
+
+  transporter.sendMail(mailOptions, async (error, info) => {
+    if (error) {
+      console.error("Error occured: ", error);
+      return res
+        .status(500)
+        .json(
+          new ApiError(500, "Error in sending email. Please try again later.")
+        );
+    } else {
+      console.log("Email sent:");
+      user.resetPassword = {
+        resetOtp: generateOtp,
+        resetOtpExpiry: Date.now() + 5 * 60 * 1000,
+      };
+      await user.save();
+      return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Email is sent successfully"));
+    }
+  });
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
@@ -487,6 +544,7 @@ export {
   loginUser,
   logoutUser,
   refreshAccessToken,
+  sendOtp,
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
