@@ -301,22 +301,88 @@ const sendOtp = asyncHandler(async (req, res) => {
   });
 });
 
-const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
 
-  const user = await User.findById(req.user?._id);
-  const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
-
-  if (!isPasswordCorrect) {
-    throw new ApiError(400, "Invalid old password");
+  if (!otp) {
+    throw new ApiError(400, "Otp is required");
+  }
+  if (!isEmailValid(email)) {
+    throw new ApiError(400, "Email is not valid");
   }
 
-  user.password = newPassword;
-  await user.save({ ValidateBeforeSave: false });
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid email id");
+  }
+
+  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
+
+  if (!resetOtp || !resetOtpExpiry || resetOtpExpiry < Date.now()) {
+    throw new ApiError(400, `Otp is expired please try again`);
+  }
+
+  if (resetOtp !== otp) {
+    throw new ApiError(400, `Otp not matched`);
+  }
 
   return res
     .status(200)
-    .json(new ApiResponse(201, {}, "password is changed successfully"));
+    .json(new ApiResponse(200, { success: true }, "Otp is verified"));
+});
+
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+
+  if (!otp) {
+    throw new ApiError(400, "Otp is required");
+  }
+  if (!isEmailValid(email)) {
+    throw new ApiError(400, "Email is not valid");
+  }
+  if (
+    !newPassword ||
+    typeof newPassword !== "string" ||
+    newPassword.trim().length < 6
+  ) {
+    throw new ApiError(
+      400,
+      "New password is required and must be at least 6 characters"
+    );
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new ApiError(400, "Invalid email id");
+  }
+
+  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
+
+  if (!resetOtp || !resetOtpExpiry || resetOtpExpiry < Date.now()) {
+    throw new ApiError(400, `Otp is expired please try again`);
+  }
+
+  if (resetOtp !== otp) {
+    throw new ApiError(400, `Otp not matched`);
+  }
+
+  const isSamePassword = await user.isPasswordCorrect(newPassword);
+  if (isSamePassword) {
+    throw new ApiError(
+      400,
+      "New password must be different from the old password"
+    );
+  }
+
+  user.password = newPassword;
+  user.resetPassword = undefined;
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password updated successfully"));
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -545,6 +611,7 @@ export {
   logoutUser,
   refreshAccessToken,
   sendOtp,
+  verifyOtp,
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,

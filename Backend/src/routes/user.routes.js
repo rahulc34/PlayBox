@@ -5,6 +5,7 @@ import {
   registerUser,
   refreshAccessToken,
   sendOtp,
+  verifyOtp,
   changeCurrentPassword,
   getCurrentUser,
   updateAccountDetails,
@@ -25,8 +26,8 @@ router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
 router.route("/refreshToken").post(refreshAccessToken);
-router.route("/sendOtp").post(sendOtp);
-// router.route("verify-Otp").post();
+router.route("/send-otp").post(sendOtp);
+router.route("/verify-otp").post(verifyOtp);
 // router.route("/change-password").post(changeCurrentPassword);
 router.route("/current-user").get(verifyJWT, getCurrentUser);
 // router.route("/verify-userEmail").post();
