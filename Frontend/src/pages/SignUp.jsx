@@ -90,7 +90,7 @@ function SignUp() {
           />
         </div>
         <div>
-          <Link to="/resetPassword-otp">Forgot Password</Link>
+          <Link to="/forgetPassword">Forgot Password</Link>
         </div>
         <div>
           <input type="submit" />

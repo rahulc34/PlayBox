@@ -5,7 +5,6 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { isEmailValid } from "../utils/validations.js";
 import jwt from "jsonwebtoken";
-import { subscribe } from "diagnostics_channel";
 import mongoose, { mongo } from "mongoose";
 import { transporter } from "../middlewares/nodemailer.middleware.js";
 
@@ -245,9 +244,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-const sendOtp = asyncHandler(async (req, res) => {
+const forgetPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  console.log("send otp -> ", email);
+  console.log("sending the reset pass link-> ", email);
   if (!isEmailValid(email)) {
     throw new ApiError(400, "Email is not valid");
   }
@@ -258,25 +257,120 @@ const sendOtp = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Email not found");
   }
 
-  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
-
-  if (resetOtp && resetOtpExpiry && resetOtpExpiry > Date.now()) {
+  const { resetPasswordExpiry } = user;
+  const id = user._id;
+  const remainingTime = resetPasswordExpiry - Date.now();
+  console.log(resetPasswordExpiry);
+  console.log(Date.now());
+  if (resetPasswordExpiry && remainingTime > 0) {
     throw new ApiError(
       400,
-      `Otp is already send. Please try after ${(resetOtpExpiry - Date.now()) / 1000} seconds`
+      `Email is already sent. Please try after ${remainingTime} seconds`
     );
   }
 
-  const max = 999999;
-  const min = 100000;
-  const generateOtp = Math.floor(Math.random() * (max - min + 1)) + min;
-  console.log(generateOtp);
+  const token = jwt.sign({ id }, process.env.RESET_PASSWORD_SECRET, {
+    expiresIn: process.env.RESET_PASSWORD_EXPIRY,
+  });
 
   const mailOptions = {
     from: process.env.NODEMAILER_EMAIL,
     to: email,
-    subject: "Reset Password",
-    text: `otp : ${generateOtp} valid till 5min`,
+    subject: "Reset Password link",
+    text: `Reset your password : http://localhost:5173/resetPassword/${id}/${token} . Don't share this link with other people.`,
+  };
+  console.log("sending the email...");
+  transporter.sendMail(mailOptions, async (error, info) => {
+    if (error) {
+      console.error("Error occured: ", error);
+      return res
+        .status(500)
+        .json(
+          new ApiError(500, "Error in sending email. Please try again later.")
+        );
+    } else {
+      console.log("Email sent:");
+      user.resetPasswordExpiry = Date.now() + 5 * 60 * 1000;
+      await user.save();
+      return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Email is sent successfully"));
+    }
+  });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  console.log(req.params);
+  const { id, token } = req.params;
+  const { newPassword } = req.body;
+  console.log(newPassword);
+  if (
+    !newPassword ||
+    typeof newPassword !== "string" ||
+    newPassword.trim().length < 6
+  ) {
+    throw new ApiError(
+      400,
+      "New password is required and must be at least 6 characters"
+    );
+  }
+
+  const decoded = jwt.verify(token, process.env.RESET_PASSWORD_SECRET);
+
+  if (decoded.id !== id) {
+    throw new ApiError(400, "Invalid token");
+  }
+
+  const user = await User.findById(decoded.id);
+
+  if (!user) {
+    throw new ApiError("Invalid token");
+  }
+
+  const { resetPasswordExpiry } = user;
+
+  if (!resetPasswordExpiry || resetPasswordExpiry < Date.now()) {
+    throw new ApiError(400, "token is expired");
+  }
+
+  const prevPassword = await user.isPasswordCorrect(newPassword);
+  if (prevPassword) {
+    throw new ApiError(400, "Please enter new password");
+  }
+
+  user.password = newPassword;
+  user.resetPasswordExpiry = 0;
+  await user.save();
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { success: true }, "Password is reset"));
+});
+
+const sendEmailVerify = asyncHandler(async (req, res) => {
+  const id = req?.user._id;
+  const user = await User.findById(id);
+  if (user.isVerified) {
+    throw new ApiError(400, "User is already verified");
+  }
+
+  const verifyEmailExpiry = user.verifyEmailExpiry;
+  if (verifyEmailExpiry && verifyEmailExpiry > Date.now()) {
+    throw new ApiError(
+      400,
+      `Email is already sent. Please try after ${(verifyEmailExpiry - Date.now()) / 1000} seconds`
+    );
+  }
+
+  const time = Date.now() + 5 * 60 * 1000;
+  const token = jwt.sign({ id }, process.env.EMAIL_VERIFY_SECRET, {
+    expiresIn: process.env.EMAIL_VERIFY_EXPIRY,
+  });
+
+  const mailOptions = {
+    from: process.env.NODEMAILER_EMAIL,
+    to: user.email,
+    subject: "Email verify link",
+    text: `Please verify your email : http://localhost:5173/verifyEmail/${id}/${token} . Don't share this link with other people.`,
   };
 
   transporter.sendMail(mailOptions, async (error, info) => {
@@ -289,10 +383,7 @@ const sendOtp = asyncHandler(async (req, res) => {
         );
     } else {
       console.log("Email sent:");
-      user.resetPassword = {
-        resetOtp: generateOtp,
-        resetOtpExpiry: Date.now() + 5 * 60 * 1000,
-      };
+      user.verifyEmailExpiry = new Date(time);
       await user.save();
       return res
         .status(200)
@@ -301,88 +392,38 @@ const sendOtp = asyncHandler(async (req, res) => {
   });
 });
 
-const verifyOtp = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { token, id } = req.params;
 
-  if (!otp) {
-    throw new ApiError(400, "Otp is required");
-  }
-  if (!isEmailValid(email)) {
-    throw new ApiError(400, "Email is not valid");
-  }
-
-  const user = await User.findOne({ email });
-
+  console.log("verify email ", id, token);
+  const user = await User.findById(id);
   if (!user) {
-    throw new ApiError(400, "Invalid email id");
+    throw new ApiError(400, "Invalid user token");
   }
 
-  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
+  const { isVerified, verifyEmailExpiry } = user;
 
-  if (!resetOtp || !resetOtpExpiry || resetOtpExpiry < Date.now()) {
-    throw new ApiError(400, `Otp is expired please try again`);
+  if (isVerified) {
+    throw new ApiError(400, "User is already verified");
   }
 
-  if (resetOtp !== otp) {
-    throw new ApiError(400, `Otp not matched`);
+  const decoded = jwt.decode(token, process.env.EMAIL_VERIFY_SECRET);
+
+  if (decoded.id !== id) {
+    throw new ApiError(400, "invalid token");
   }
 
+  if (verifyEmailExpiry < Date.now()) {
+    throw new ApiError(400, "Token is expired");
+  }
+
+  user.isVerified = true;
+  user.save();
+
+  console.log("email is verified");
   return res
     .status(200)
     .json(new ApiResponse(200, { success: true }, "Otp is verified"));
-});
-
-const changeCurrentPassword = asyncHandler(async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-
-  if (!otp) {
-    throw new ApiError(400, "Otp is required");
-  }
-  if (!isEmailValid(email)) {
-    throw new ApiError(400, "Email is not valid");
-  }
-  if (
-    !newPassword ||
-    typeof newPassword !== "string" ||
-    newPassword.trim().length < 6
-  ) {
-    throw new ApiError(
-      400,
-      "New password is required and must be at least 6 characters"
-    );
-  }
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    throw new ApiError(400, "Invalid email id");
-  }
-
-  const { resetOtp, resetOtpExpiry } = user.resetPassword || {};
-
-  if (!resetOtp || !resetOtpExpiry || resetOtpExpiry < Date.now()) {
-    throw new ApiError(400, `Otp is expired please try again`);
-  }
-
-  if (resetOtp !== otp) {
-    throw new ApiError(400, `Otp not matched`);
-  }
-
-  const isSamePassword = await user.isPasswordCorrect(newPassword);
-  if (isSamePassword) {
-    throw new ApiError(
-      400,
-      "New password must be different from the old password"
-    );
-  }
-
-  user.password = newPassword;
-  user.resetPassword = undefined;
-  await user.save();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password updated successfully"));
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
@@ -610,9 +651,10 @@ export {
   loginUser,
   logoutUser,
   refreshAccessToken,
-  sendOtp,
-  verifyOtp,
-  changeCurrentPassword,
+  forgetPassword,
+  resetPassword,
+  sendEmailVerify,
+  verifyEmail,
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,

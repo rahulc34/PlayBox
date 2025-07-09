@@ -44,21 +44,11 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    verifyEmail: {
-      resetOtp: {
-        type: String,
-      },
-      resetOtpExpiry: {
-        type: Number,
-      },
+    resetPasswordExpiry: {
+      type: Number
     },
-    resetPassword: {
-      resetOtp: {
-        type: String,
-      },
-      resetOtpExpiry: {
-        type: Number,
-      },
+    verifyEmailExpiry: {
+      type: Number
     },
   },
   {

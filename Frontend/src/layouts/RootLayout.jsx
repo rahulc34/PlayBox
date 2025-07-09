@@ -3,7 +3,8 @@ import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 function RootLayout() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isVerified, isAuthenticated, logout, sendVerifyLink } =
+    useAuth();
 
   return (
     <div>
@@ -24,6 +25,18 @@ function RootLayout() {
                   <p>{user.username[0].toUpperCase()}</p>
                 </Link>
               </li>
+              {!isVerified && (
+                <li>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      sendVerifyLink();
+                    }}
+                  >
+                    <button type="submit">verify</button>
+                  </form>
+                </li>
+              )}
               <li>
                 <button onClick={logout}>Logout</button>
               </li>

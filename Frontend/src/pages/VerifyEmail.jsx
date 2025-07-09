@@ -1,36 +1,32 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 function VerifyEmail() {
-  const [otp, setOtp] = useState("");
+  const { id, token } = useParams();
+  const [status, setStatus] = useState("pending");
 
-  const verifyOtpHandler = async () => {
-    try {
-      const response = await axios.post("api/v1/users/verifyChannel");
-    } catch (error) {}
-  };
-  return (
-    <div>
-      <form onSubmit={verifyOtpHandler}>
-        <div>
-          <label htmlFor="otp">Otp*</label>
-          <input
-            type="text"
-            id="otp"
-            name="otp"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter your otp"
-            autoComplete="off"
-            required
-          />
-        </div>
-        <div>
-          <input type="submit" />
-        </div>
-      </form>
-    </div>
-  );
+  useEffect(() => {
+    const verify = async () => {
+      try {
+        const response = await axios.post(
+          `/api/v1/users/verify-email/${id}/${token}`
+        );
+        if (response.data.success) {
+          setStatus("success");
+        } else {
+          setStatus("error");
+        }
+      } catch (error) {
+        setStatus("error");
+      }
+    };
+    verify();
+  }, [id, token]);
+
+  if (status === "pending") return <div>Verifying your email...</div>;
+  if (status === "success") return <div>Email is verified!</div>;
+  return <div>Something went wrong. Email could not be verified.</div>;
 }
 
 export default VerifyEmail;

@@ -1,106 +1,74 @@
 import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
 
 function ResetPassword() {
-  const [email, setEmail] = useState("");
-  const [isEmailVerify, setIsEmailVerify] = useState(false);
-
-  const [otp, setOtp] = useState("");
-  const [isOtpVerify, setIsOtpVerify] = useState(false);
-
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConformPassword] = useState("");
+  const [conformPassword, setConformPassword] = useState("");
+  const [matchPassword, setmatchPassword] = useState(false);
+  const navigate = useNavigate();
+  const { id, token } = useParams();
 
-  const emailVerifyHandler = async () => {
+  const resetPassword = async (e) => {
+    e.preventDefault();
+    console.log(id, "  ", token);
     try {
-      const response = await axios.post("/api/v1/users/email-verify", {
-        email,
-      });
-    } catch (error) {}
+      const response = await axios.post(
+        `/api/v1/users/reset-password/${id}/${token}`,
+        {
+          newPassword: password,
+        }
+      );
+
+      console.log(response);
+      if (response.data.success) {
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
-  const otpVerifyHandler = async () => {
-    try {
-      const response = await axios.post("/api/v1/users/email-otpVerify", {
-        email,
-      });
-    } catch (error) {}
-  };
-  const passwordChangeHandler = async () => {
-    try {
-      const response = await axios.post("/api/v1/users/reset-password", {
-        email,
-      });
-    } catch (error) {}
-  };
+
   return (
     <div>
       <h2>Reset Password</h2>
-      {!isEmailVerify && (
-        <form onSubmit={emailVerifyHandler}>
-          <div>
-            <label htmlFor="email">Email*</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              autoComplete="off"
-              required
-            />
-          </div>
-
-          <div>
-            <input type="submit" />
-          </div>
-        </form>
-      )}
-      {isEmailVerify && !isOtpVerify && (
-        <form>
-          <div>
-            <label htmlFor="otp">Otp*</label>
-            <input
-              type="text"
-              id="otp"
-              name="otp"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter your otp"
-              autoComplete="off"
-              required
-            />
-          </div>
-          <div>
-            <input type="submit" />
-          </div>
-        </form>
-      )}
-
-      {isEmailVerify && isOtpVerify && (
-        <form>
-          <div>
-            <label htmlFor="newPassword">New password*</label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              placeholder="Enter your new password"
-            />
-          </div>
-          <div>
-            <label htmlFor="conformPassword">Conform new password*</label>
-            <input
-              type="password"
-              id="conformPassword"
-              name="conformPassword"
-              placeholder="conform new password"
-            />
-          </div>
-          <div>
-            <input type="submit" />
-          </div>
-        </form>
-      )}
+      <form onSubmit={resetPassword}>
+        <div>
+          <label htmlFor="newPassword">New password*</label>
+          <input
+            type="password"
+            id="newPassword"
+            name="newPassword"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setmatchPassword(password === conformPassword);
+            }}
+            placeholder="Enter your new password"
+            required
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <label htmlFor="conformPassword">Conform new password*</label>
+          <input
+            type="password"
+            id="conformPassword"
+            name="conformPassword"
+            value={conformPassword}
+            onChange={(e) => {
+              setConformPassword(e.target.value);
+              setmatchPassword(password === conformPassword);
+            }}
+            placeholder="Enter your new password"
+            required
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <input type="submit" value="submit" />
+        </div>
+      </form>
     </div>
   );
 }

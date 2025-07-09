@@ -50,7 +50,7 @@ function Login() {
           />
         </div>
         <div>
-          <Link to="/resetPassword-otp">Forgot Password</Link>
+          <Link to="/forgetPassword">Forgot Password</Link>
         </div>
         <div>
           <button type="submit">LogIn</button>

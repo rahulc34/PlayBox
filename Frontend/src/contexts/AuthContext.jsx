@@ -9,6 +9,19 @@ const useAuth = () => useContext(AuthContext);
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+
+  const sendVerifyLink = async () => {
+    try {
+      const response = await axiosPrivate.post("/api/v1/users/sendEmail-verify");
+      console.log(response);
+      if (response.data.success) {
+        console.log("link is send to email");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const signup = async (credentials, navigate) => {
     console.log("signup -> ", credentials);
@@ -46,6 +59,7 @@ const AuthProvider = ({ children }) => {
           "Authorization"
         ] = `Bearer ${accessToken}`;
         setUser(user);
+        setIsVerified(user?.isVerified);
         setIsAuthenticated(true);
       } else {
         console.log("error while logging", data.message);
@@ -64,6 +78,7 @@ const AuthProvider = ({ children }) => {
       const data = response.data;
       if (data.success) {
         setUser(null);
+        setIsVerified(false);
         setIsAuthenticated(false);
       } else {
         console.log(data.message);
@@ -87,6 +102,7 @@ const AuthProvider = ({ children }) => {
           console.log("logged in when component mount");
           setIsAuthenticated(true);
           setUser(data.data);
+          setIsVerified(data.data?.isVerified);
         }
       } catch (error) {
         console.log(error);
@@ -106,10 +122,13 @@ const AuthProvider = ({ children }) => {
       value={{
         user,
         setUser,
+        isVerified,
+        setIsVerified,
         isAuthenticated,
         logout,
         login,
         signup,
+        sendVerifyLink,
       }}
     >
       {children}
