@@ -28,7 +28,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     userId,
     query,
   } = req.query;
-
+  console.log(page);
   console.log(query);
   const filter = {};
 
@@ -92,7 +92,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
       {
         $project: {
           _id: 1,
-          videoFile: 1,   // remove this later bcz user will see video when he click and fetch video from db by videoid
+          videoFile: 1, // remove this later bcz user will see video when he click and fetch video from db by videoid
           thumbnail: 1,
           isPublished: 1,
           title: 1,
@@ -246,8 +246,6 @@ const getVideoById = asyncHandler(async (req, res) => {
       $unwind: "$owner",
     },
   ]);
-
-  console.log(video);
 
   if (!video || video.length === 0) {
     throw new ApiError(400, "Video not found");

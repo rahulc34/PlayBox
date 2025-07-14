@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
+import Button from "../components/Button";
+import Input from "../components/Input";
+import Error from "../components/Error";
 
 function ForgetPassword() {
   const [email, setEmail] = useState("");
@@ -29,31 +32,27 @@ function ForgetPassword() {
   };
 
   return (
-    <div>
-      <h2>Reset Password</h2>
+    <div className="box-container">
+      <div>
+        <p>Reset Password</p>
+      </div>
       {isEmailSend ? (
         <p>Reset Link is send on email</p>
       ) : (
         <form onSubmit={formHandler}>
+          <Input
+            type="email"
+            name="email"
+            placeholder="Enter Your email"
+            value={email}
+            setValue={setEmail}
+          />
           <div>
-            <label htmlFor="email">Email*</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              autoComplete="off"
-              required
-            />
-          </div>
-          <div>
-            <button type="submit">submit</button>
+            <Button text={"submit"} />
           </div>
         </form>
       )}
-      {errMsg ? <p>{errMsg}</p> : ""}
+      {errMsg && <Error message={errMsg} />}
     </div>
   );
 }

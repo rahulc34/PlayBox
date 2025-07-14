@@ -10,10 +10,13 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [error, setError] = useState("");
 
   const sendVerifyLink = async () => {
     try {
-      const response = await axiosPrivate.post("/api/v1/users/sendEmail-verify");
+      const response = await axiosPrivate.post(
+        "/api/v1/users/sendEmail-verify"
+      );
       console.log(response);
       if (response.data.success) {
         console.log("link is send to email");
@@ -47,8 +50,9 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async ({ credentials }) => {
+  const login = async ({ credentials }, navigate) => {
     console.log("logging ->", credentials);
+    setError("");
     try {
       const response = await axios.post("/api/v1/users/login", credentials);
       const data = response.data;
@@ -61,11 +65,21 @@ const AuthProvider = ({ children }) => {
         setUser(user);
         setIsVerified(user?.isVerified);
         setIsAuthenticated(true);
+        navigate("/");
       } else {
-        console.log("error while logging", data.message);
+        console.log("error while logging", data);
+        setError(data);
       }
     } catch (error) {
-      console.log("error --> ", error);
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.message ||
+          "Login failed. Please check your credentials and try again.";
+        setError(message);
+      } else {
+        console.log("Unexpected error:", error);
+        setError("Unexpected error:");
+      }
     }
   };
 
@@ -99,7 +113,6 @@ const AuthProvider = ({ children }) => {
         });
         const data = response.data;
         if (isMounted && data.success) {
-          console.log("logged in when component mount");
           setIsAuthenticated(true);
           setUser(data.data);
           setIsVerified(data.data?.isVerified);
@@ -122,6 +135,7 @@ const AuthProvider = ({ children }) => {
       value={{
         user,
         setUser,
+        error,
         isVerified,
         setIsVerified,
         isAuthenticated,

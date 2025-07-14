@@ -1,0 +1,44 @@
+header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background-color: #f6f8fa;
+  z-index: 10;
+}
+.btnToggle {
+  display: none;
+}
+
+header ul {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header ul li {
+  padding: 8px;
+}
+
+header ul li input {
+  padding: 1px 2px;
+}
+
+main {
+  min-height: calc(100vh - 40px);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+}
+
+@media (max-width: 364px) {
+  header ul li input {
+    width: 50%;
+  }
+}
+
+@media (max-width: 1250px) {
+  .btnToggle {
+    display: block;
+  }
+}

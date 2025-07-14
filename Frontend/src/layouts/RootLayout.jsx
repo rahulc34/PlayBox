@@ -1,22 +1,36 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import "./RootLayout.css";
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useToggle } from "../contexts/ToggleSidebar.jsx";
 
 function RootLayout() {
+  const toggleRef = useRef();
   const { user, isVerified, isAuthenticated, logout, sendVerifyLink } =
     useAuth();
-
+  const { isToggle, setIsToggle, isToggleBtnShow } = useToggle();
   return (
-    <div>
+    <>
       <header>
         <ul>
+          <li className="btnToggle" ref={toggleRef}>
+            {isToggleBtnShow && (
+              <button
+                onClick={() => {
+                  setIsToggle(!isToggle);
+                }}
+              >
+                {isToggle ? "close" : "open"}
+              </button>
+            )}
+          </li>
           <li>
             <Link to="/">
               <p>Playbox</p>
             </Link>
           </li>
           <li>
-            <input type="text" placeholder="search something" />
+            <input type="text" placeholder="Search..." />
           </li>
           {isAuthenticated ? (
             <>
@@ -57,7 +71,7 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
-    </div>
+    </>
   );
 }
 

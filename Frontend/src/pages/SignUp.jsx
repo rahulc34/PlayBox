@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import "../cssStyles/signUp.css";
+import Input from "../components/Input";
+import Button from "../components/Button";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -12,12 +15,8 @@ function SignUp() {
   const { signup, isAuthenticated } = useAuth();
   const userRef = useRef();
 
-  useEffect(() => {
-    userRef.current.focus();
-  }, []);
-
   return (
-    <div>
+    <div className="box-container">
       <div>
         <p>PlayBox</p>
       </div>
@@ -31,69 +30,39 @@ function SignUp() {
         }}
       >
         <p>create your account</p>
-        <div>
-          <label htmlFor="username">Username*</label>
-          <input
-            type="text"
-            name="username"
-            id="username"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-            }}
-            ref={userRef}
-            placeholder="Eneter your username"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="fullname">Fullname*</label>
-          <input
-            type="text"
-            name="fullname"
-            id="fullname"
-            value={fullname}
-            onChange={(e) => {
-              setFullname(e.target.value);
-            }}
-            placeholder="Eneter your fullname"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="email">Email*</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-            }}
-            placeholder="Enter your email"
-            autoComplete="off"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password*</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-            placeholder="Eneter your password"
-            required
-          />
-        </div>
+        <Input
+          type="text"
+          name="username"
+          placeholder="Enter Your name"
+          value={username}
+          setValue={setUsername}
+        />
+        <Input
+          type="text"
+          name="fullname"
+          placeholder="Enter Your fullname"
+          value={fullname}
+          setValue={setFullname}
+        />
+        <Input
+          type="email"
+          name="email"
+          placeholder="Enter Your email"
+          value={email}
+          setValue={setEmail}
+        />
+        <Input
+          type="password"
+          name="password"
+          placeholder="Enter Your password"
+          value={password}
+          setValue={setPassword}
+        />
         <div>
           <Link to="/forgetPassword">Forgot Password</Link>
         </div>
         <div>
-          <input type="submit" />
+          <Button text={"submit"} />
         </div>
         <div>
           <div>

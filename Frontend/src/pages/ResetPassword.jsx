@@ -30,43 +30,27 @@ function ResetPassword() {
   };
 
   return (
-    <div>
-      <h2>Reset Password</h2>
+    <div className="box-container">
+      <div>
+        <p>Reset Password</p>
+      </div>
       <form onSubmit={resetPassword}>
+        <Input
+          type="password"
+          name="password"
+          placeholder="Enter Your password"
+          value={password}
+          setValue={setPassword}
+        />
+        <Input
+          type="password"
+          name="conformPassword"
+          placeholder="conform Your password"
+          value={conformPassword}
+          setValue={setConformPassword}
+        />
         <div>
-          <label htmlFor="newPassword">New password*</label>
-          <input
-            type="password"
-            id="newPassword"
-            name="newPassword"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setmatchPassword(password === conformPassword);
-            }}
-            placeholder="Enter your new password"
-            required
-            autoComplete="off"
-          />
-        </div>
-        <div>
-          <label htmlFor="conformPassword">Conform new password*</label>
-          <input
-            type="password"
-            id="conformPassword"
-            name="conformPassword"
-            value={conformPassword}
-            onChange={(e) => {
-              setConformPassword(e.target.value);
-              setmatchPassword(password === conformPassword);
-            }}
-            placeholder="Enter your new password"
-            required
-            autoComplete="off"
-          />
-        </div>
-        <div>
-          <input type="submit" value="submit" />
+          <Button text={"submit"} />
         </div>
       </form>
     </div>

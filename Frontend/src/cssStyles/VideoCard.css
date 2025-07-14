@@ -1,0 +1,104 @@
+.main-container {
+  width: 100vw;
+  max-width: 1080px;
+}
+.grid-container {
+  /* display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px; */
+  /* max-width: 1280px; */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  padding-top: 20px;
+  background-color: white;
+  border-radius: 20px;
+  margin: 10px;
+}
+
+.video-container {
+  flex-basis: 30%;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-thumbnail {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  border-radius: 8px;
+  margin: 5px;
+  box-shadow: 0px 0px 6px rgb(218, 214, 214);
+}
+
+.thumbnail,
+.profile {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-thumbnail span {
+  margin: 0 4px 4px 0;
+  border-radius: 6px;
+  background-color: rgb(36, 30, 30);
+  padding: 1px 4px;
+  color: white;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.profile-container {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+  border-radius: 25px;
+  box-shadow: 0px 0px 5px black;
+}
+
+.video-bottom {
+  /* border: 1px solid red; */
+  padding: 20px 10px;
+  display: grid;
+  grid-template-columns: 20% 80%;
+  /* border: 1px solid red; */
+}
+
+.info {
+  display: flex;
+  padding-left: 10px;
+  flex-direction: column;
+  /* background-color: red; */
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+.info-upper {
+  padding-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.info-lower {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgb(78, 77, 77);
+}
+
+@media (max-width: 960px) {
+  .video-container {
+    flex-basis: 45%;
+    width: 100vw;
+  }
+}
+
+@media (max-width: 570px) {
+  .video-container {
+    flex-basis: 90%;
+    width: 100vw;
+  }
+}

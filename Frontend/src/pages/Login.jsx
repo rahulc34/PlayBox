@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../contexts/AuthContext";
+import "../cssStyles/signUp.css";
+import Input from "../components/Input";
+import Button from "../components/Button";
+import Error from "../components/Error";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, error } = useAuth();
 
   return (
-    <div>
+    <div className="box-container">
       <div>
         <p>PlayBox</p>
       </div>
@@ -20,40 +24,29 @@ function Login() {
         onSubmit={(e) => {
           e.preventDefault();
           const credentials = { password, email };
-          login({ credentials });
-          navigate("/");
+          login({ credentials }, navigate);
         }}
       >
         <p>Please enter your details</p>
-        <div>
-          <label htmlFor="email">Email*</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            required={true}
-          />
-        </div>
-        <div>
-          <label htmlFor="password">Password*</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Eneter your password"
-            required={true}
-          />
-        </div>
+        <Input
+          type="email"
+          name="email"
+          placeholder="Enter Your email"
+          value={email}
+          setValue={setEmail}
+        />
+        <Input
+          type="password"
+          name="password"
+          placeholder="Enter Your password"
+          value={password}
+          setValue={setPassword}
+        />
         <div>
           <Link to="/forgetPassword">Forgot Password</Link>
         </div>
         <div>
-          <button type="submit">LogIn</button>
+          <Button text={"submit"} />
         </div>
         <div>
           <div>
@@ -62,6 +55,7 @@ function Login() {
           </div>
         </div>
       </form>
+      {error && <Error message={error} />}
     </div>
   );
 }
