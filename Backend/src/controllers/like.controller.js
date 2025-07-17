@@ -28,6 +28,9 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   const like = await Like.findOne({ video: videoId, likedBy: userId });
   if (!like) {
     const createdLike = await Like.create({ video: videoId, likedBy: userId });
+    video.likes = (video.likes || 0) + 1;
+    await video.save();
+
     return res
       .status(200)
       .json(
@@ -40,6 +43,8 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   }
 
   const dislike = await Like.deleteOne({ video: videoId, likedBy: userId });
+  video.likes = video.likes ? video.likes - 1 : 0;
+  await video.save();
 
   return res
     .status(200)
