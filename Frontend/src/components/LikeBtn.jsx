@@ -1,14 +1,34 @@
 import React from "react";
+import { axiosPrivate } from "../api/axios";
+import { useState } from "react";
 
-const LikeBtn = ({ likes }) => {
+const LikeBtn = ({ likes, videoId }) => {
+  const [like, setLike] = useState(likes);
+  const toggleTweetLike = async () => {
+    try {
+      const response = await axiosPrivate.post(
+        `/api/v1/likes/toggle/v/${videoId}`
+      );
+      const data = response.data;
+
+      if (data.success) {
+        setLike(data.data?.like);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
-    <div style={{ display: "flex", gap: "3px" }}>
-      <button className="like">
-        <p>{likes}</p>
-        <img src="./dsfjk" />
-      </button>
-      <button className="like">Save</button>
-    </div>
+    <button
+      className="like"
+      onClick={() => {
+        console.log("clicked");
+        toggleTweetLike();
+      }}
+    >
+      <p style={{ color: "white" }}>{like}</p>
+      <img src="./dsfjk" />
+    </button>
   );
 };
 

@@ -13,6 +13,7 @@ function VideoDetail() {
   const [comment, setComment] = useState("");
 
   const getVideoById = async () => {
+    console.log("fetching profile data");
     try {
       const response = await axiosPrivate.get(`/api/v1/videos/${videoId}`);
       const data = response.data;
@@ -37,12 +38,14 @@ function VideoDetail() {
     }
   };
 
+  console.log("video", video);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     getVideoById();
     getComment();
   }, [videoId]);
 
+  console.log(video);
   return (
     <div className="videoDetailWrapper">
       <div className="videoDetailCard">

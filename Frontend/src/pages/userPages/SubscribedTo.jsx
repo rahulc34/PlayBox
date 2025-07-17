@@ -30,7 +30,8 @@ function SubscribedTo({ userId }) {
 
   return (
     <div className="subscribeWrapper">
-      {subscribedTo &&
+      {subscribedTo.length &&
+        subscribedTo &&
         subscribedTo.map(
           ({ _id, username, fullname, avatar, isSubscribed }) => {
             console.log(_id, userId);

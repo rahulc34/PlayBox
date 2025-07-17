@@ -5,9 +5,10 @@ import LikeBtn from "./LikeBtn.jsx";
 import Subscribe from "./Subscribe.jsx";
 import { Navigate } from "react-router-dom";
 import Save from "./Save.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const VideoDetailCard = ({
-  _id,
+  _id: videoId,
   owner,
   videoFile,
   thumbnail,
@@ -15,6 +16,7 @@ const VideoDetailCard = ({
   description,
   duration,
   views,
+  likes,
   isPublished,
   createdAt,
 }) => {
@@ -30,11 +32,11 @@ const VideoDetailCard = ({
   const navigate = useNavigate();
   const [readMore, setReadMore] = useState(false);
   const [totalSubscription, setTotalSubscription] = useState(subscribersCount);
-
+  const { user } = useAuth();
   return (
     <>
       <div className="videoWrapper">
-        <video key={_id} width="320px" controls>
+        <video key={videoId} width="320px" controls>
           <source src={videoFile} />
         </video>
       </div>
@@ -47,7 +49,10 @@ const VideoDetailCard = ({
               <span>{createdAt}</span>
             </p>
           </div>
-          <LikeBtn likes="0" />
+          <div style={{ display: "flex", gap: "3px" }}>
+            {videoId && <LikeBtn likes={likes} videoId={videoId} />}
+            <button className="like">Save</button>
+          </div>
         </div>
         <div className="lower-detail">
           <div
@@ -62,11 +67,13 @@ const VideoDetailCard = ({
               <p className="subscribers">{totalSubscription} Subscribers</p>
             </span>
           </div>
-          <Subscribe
-            isSubscribed={isSubscribed}
-            setTotalSubscription={setTotalSubscription}
-            userId={userId}
-          />
+          {userId !== user._id && (
+            <Subscribe
+              isSubscribed={isSubscribed}
+              setTotalSubscription={setTotalSubscription}
+              userId={userId}
+            />
+          )}
         </div>
         <p className={"description " + (readMore ? "activeRead" : "")}>
           Description: {description}

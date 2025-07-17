@@ -34,7 +34,7 @@ function Subscribers({ userId }) {
 
   return (
     <div className="subscribeWrapper">
-      {subscribers.length &&
+      {subscribers &&
         subscribers.map(({ _id, username, fullname, avatar, isSubscribed }) => {
           console.log(username, isSubscribed);
           return (
@@ -51,8 +51,8 @@ function Subscribers({ userId }) {
                   <span className="info-lower">{fullname}</span>
                 </div>
               </div>
-              {user._id !== _id && (
-                <Subscribe subscribed={isSubscribed} userId={_id} />
+              {user._id !== _id && isSubscribed !== undefined && (
+                <Subscribe isSubscribed={isSubscribed} userId={_id} />
               )}
             </div>
           );

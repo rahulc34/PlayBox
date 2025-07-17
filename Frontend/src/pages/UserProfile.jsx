@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { axiosPrivate } from "../api/axios.js";
 import Profile from "../components/Profile.jsx";
@@ -13,7 +13,7 @@ function UserProfile() {
   const [user, setUser] = useState("");
   const [userId, setUserId] = useState("");
   const [state, setState] = useState("videos");
-  console.log(username);
+
   const getUserProfile = async () => {
     try {
       const response = await axiosPrivate.get(`/api/v1/users/C/${username}`);
@@ -21,21 +21,20 @@ function UserProfile() {
       if (data.success) {
         setUser(data.data);
         setUserId(data.data?._id);
+        setState("videos");
       }
     } catch (error) {
       console.log("error", error);
     }
   };
 
-  useState(() => {
-    console.log("getting the data");
+  useEffect(() => {
     getUserProfile();
-    console.log("got data");
   }, [username]);
 
   return (
     <div>
-      <Profile {...user} />
+      <Profile {...user} setUser={setUser} user={user} />
       <ProfileNavButton state={state} setState={setState} />
       <div>
         <ProfileNavDetail state={state} userId={userId} />
