@@ -17,12 +17,12 @@ const videoSchema = new Schema(
     },
     title: {
       type: String,
-      index:true,
+      index: true,
       require: true,
     },
     description: {
       type: String,
-      index:true,
+      index: true,
       require: true,
     },
     duration: {
@@ -35,7 +35,7 @@ const videoSchema = new Schema(
     },
     isPublished: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   { timestamps: true }

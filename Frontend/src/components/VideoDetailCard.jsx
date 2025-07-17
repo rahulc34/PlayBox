@@ -4,6 +4,7 @@ import { axiosPrivate } from "../api/axios.js";
 import LikeBtn from "./LikeBtn.jsx";
 import Subscribe from "./Subscribe.jsx";
 import { Navigate } from "react-router-dom";
+import Save from "./Save.jsx";
 
 const VideoDetailCard = ({
   _id,
@@ -23,10 +24,12 @@ const VideoDetailCard = ({
     fullname,
     avatar,
     subscribersCount,
-    isSubscibed,
+    isSubscribed,
   } = owner || {};
 
   const navigate = useNavigate();
+  const [readMore, setReadMore] = useState(false);
+  const [totalSubscription, setTotalSubscription] = useState(subscribersCount);
 
   return (
     <>
@@ -47,18 +50,30 @@ const VideoDetailCard = ({
           <LikeBtn likes="0" />
         </div>
         <div className="lower-detail">
-          <div className="profile" onClick={() => navigate(`/user/${userId}`)}>
+          <div
+            className="profile"
+            onClick={() => navigate(`/user/${username}`)}
+          >
             <div className="profile-container">
               <img src={avatar} alt="profile picture" className="profile" />
             </div>
             <span className="userinfo">
               <p className="username">{fullname}</p>
-              <p className="subscribers">{subscribersCount} Subscribers</p>
+              <p className="subscribers">{totalSubscription} Subscribers</p>
             </span>
           </div>
-          <Subscribe isSubscibed />
+          <Subscribe
+            isSubscribed={isSubscribed}
+            setTotalSubscription={setTotalSubscription}
+            userId={userId}
+          />
         </div>
-        <p className="description">Description: {description}</p>
+        <p className={"description " + (readMore ? "activeRead" : "")}>
+          Description: {description}
+          <span className="moreBtn" onClick={() => setReadMore(!readMore)}>
+            more
+          </span>
+        </p>
       </div>
     </>
   );

@@ -48,12 +48,29 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
   if (!isValidObjectId(userId)) {
     throw new ApiError(400, "invalid user ID");
   }
-  if (userId !== req.user._id.toString()) {
-    throw new ApiError(404, "Unauthourize access");
-  }
 
-  const userPlaylist = await Playlist.find({ owner: userId }).select("-videos");
+  // const userPlaylist = await Playlist.find({ owner: userId }).select("-videos");
 
+  const userPlaylist = await Playlist.aggregate([
+    { $match: { owner: new mongoose.Types.ObjectId(userId) } },
+    {
+      $addFields: {
+        totalVideos: {
+          $size: "$videos",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        owner: 1,
+        totalVideos: 1,
+        private: 1,
+      },
+    },
+  ]);
   return res
     .status(200)
     .json(
@@ -63,25 +80,44 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
 
 const getPlaylistById = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  const owner = req.user._id.toString();
   //TODO: get playlist by id
   // check if playlist id is valid mongodb id
   // find the playlist in db
   // check if playlist owner is user
   // return response
+  console.log(playlistId);
 
   if (!isValidObjectId(playlistId)) {
     throw new ApiError(400, "invalid playlist ID");
   }
 
-  const isPlaylistExist = await Playlist.findOne({ _id: playlistId, owner });
+  const isPlaylistExist = await Playlist.findById(playlistId);
   if (!isPlaylistExist) {
-    throw new ApiError(400, "Playlist doesn't exists or unauthorized access");
+    throw new ApiError(400, "Playlist doesn't exists");
   }
 
   const playlist = await Playlist.aggregate([
     {
       $match: { _id: new mongoose.Types.ObjectId(playlistId) },
+    },
+    {
+      $lookup: {
+        as: "owner",
+        localField: "owner",
+        foreignField: "_id",
+        from: "users",
+        pipeline: [
+          {
+            $project: {
+              username: 1,
+              avatar: 1,
+            },
+          },
+        ],
+      },
+    },
+    {
+      $unwind: "$owner",
     },
     {
       $lookup: {
@@ -105,10 +141,11 @@ const getPlaylistById = asyncHandler(async (req, res) => {
             $project: {
               _id: 1,
               title: 1,
-              description: 1,
-              videoFile:1,
-              thumbnail:1,
-              "owner.fullname": 1,
+              thumbnail: 1,
+              duration: 1,
+              createdAt: 1,
+              isPublished: 1,
+              views: 1,
               "owner.username": 1,
               "owner.avatar": 1,
             },
@@ -121,7 +158,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         _id: 1,
         name: 1,
         description: 1,
+        owner: 1,
         videos: 1,
+        private: 1,
       },
     },
   ]);

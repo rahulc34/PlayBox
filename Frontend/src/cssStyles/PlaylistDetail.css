@@ -1,0 +1,88 @@
+.playlist-header {
+  display: flex;
+  margin: 20px;
+  padding: 20px 0px;
+  font-size: 2rem;
+  font-weight: 800;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.playlist-header button {
+  padding: 0.8rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 1.8rem;
+  box-shadow: 0px 0px 6px rgb(218, 214, 214);
+}
+.backdropimage {
+  padding: 4% 10%;
+  max-width: 760px;
+}
+
+.videoWrapper {
+  aspect-ratio: 16/9;
+}
+
+.playlistDetail {
+  padding-top: 10px;
+}
+
+.playlistDetail p {
+  padding: 0.8rem 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.playlistDetail .name {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.createdBY {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* playlist show card */
+
+.plylistwrapper {
+  padding: 20px;
+}
+.playlistcontain {
+  padding: 2rem;
+  margin: 1rem;
+  box-shadow: 0px 0px 6px rgb(218, 214, 214);
+  border-radius: 2rem;
+  max-width: 400px;
+  background-color: white;
+  position: relative;
+}
+
+.playlist-content .name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.playlist-content .count {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.playlist-content .description {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  border-top: 1px solid black;
+}
+
+.editBtn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.8rem 1rem;
+  border-radius: 0.8rem;
+  background-color: white;
+  box-shadow: 0 0 10px rgb(190, 187, 187);
+}

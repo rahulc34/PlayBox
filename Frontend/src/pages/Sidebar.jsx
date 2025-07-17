@@ -3,9 +3,10 @@ import "../cssStyles/Sidebar.css";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useToggle } from "../contexts/ToggleSidebar.jsx";
+import PlaylistCard from "../components/PlaylistCard.jsx";
 
 function Sidebar() {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const { isToggle, setIsToggle, isToggleBtnShow, setIsToggleBtnShow } =
     useToggle();
@@ -28,6 +29,9 @@ function Sidebar() {
           </li>
           <li>
             <Link to="/subscribers">Subscribers</Link>
+          </li>
+          <li>
+            <Link to="/subscribedTo">subscribed to</Link>
           </li>
           <li>
             <Link to="/liked-video">Liked Videos</Link>

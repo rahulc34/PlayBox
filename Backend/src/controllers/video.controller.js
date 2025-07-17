@@ -31,10 +31,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
   console.log(page);
   console.log(query);
   const filter = {};
-
+  console.log(req.query);
   // filter on getting all video of user ---> request by any user to see his or others videos account
   if (userId) {
-    filter.owner = userId;
+    filter.owner = new mongoose.Types.ObjectId(userId);
   }
 
   // filter on query done by any user in search field
@@ -68,6 +68,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
   //paginations options
   const skip = (page - 1) * limit;
 
+  console.log(filter, page, limit, skip);
   // pipeline for query
   const pipeline = [
     { $match: filter },
@@ -221,7 +222,7 @@ const getVideoById = asyncHandler(async (req, res) => {
               subscribersCount: {
                 $size: "$subscribers",
               },
-              isSubscibed: {
+              isSubscribed: {
                 $cond: {
                   if: { $in: [req.user?._id, "$subscribers.subscriber"] },
                   then: true,
@@ -236,7 +237,7 @@ const getVideoById = asyncHandler(async (req, res) => {
               fullname: 1,
               avatar: 1,
               subscribersCount: 1,
-              isSubscibed: 1,
+              isSubscribed: 1,
             },
           },
         ],

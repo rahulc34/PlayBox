@@ -144,7 +144,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 const getLikedVideos = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   //TODO: get all liked videos
-
+  console.log(userId);
   if (!isValidObjectId(userId)) {
     throw new ApiError("Invalid userId");
   }
@@ -161,17 +161,30 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         foreignField: "_id",
         pipeline: [
           {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "ownerInfo",
+            },
+          },
+          {
+            $unwind: "$ownerInfo", // Unwind the ownerInfo array to get a single object
+          },
+          {
             $project: {
               _id: 1,
               thumbnail: 1,
-              owner: 1,
+              isPublished: 1,
               title: 1,
               description: 1,
               duration: 1,
               views: 1,
-              likeCounts: 1,
-              isPublished: 1,
               createdAt: 1,
+              owner: 1,
+              "ownerInfo.username": 1, // Include specific user fields
+              "ownerInfo.avatar": 1,
+              "ownerInfo.fullname": 1, // Include specific user fields
             },
           },
         ],
@@ -181,6 +194,8 @@ const getLikedVideos = asyncHandler(async (req, res) => {
       $unwind: "$videoList",
     },
   ]);
+
+  console.log(likes);
 
   return res
     .status(200)

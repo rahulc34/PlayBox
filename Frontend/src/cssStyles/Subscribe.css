@@ -1,0 +1,29 @@
+.subscribeWrapper {
+  padding: 20px;
+  margin: 0 auto;
+}
+
+.subscribeCard {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  max-width: 600px;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.subscribeCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.subscribeCard button {
+  padding: 0.3rem;
+  border-radius: 8px;
+}

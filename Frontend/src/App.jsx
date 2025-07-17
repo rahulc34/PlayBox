@@ -11,14 +11,26 @@ import {
   Sidebar,
   VideoDetail,
 } from "./pages/index.js";
+
+import {
+  Dashboard,
+  VideosList,
+  Playlist,
+  LikedVideo,
+  History,
+  Subscribers,
+} from "./pages/userPages/index.js";
+
 import RootLayout from "./layouts/RootLayout.jsx";
 import RedirectIfAuth from "./utils/RedirectIfAuth.jsx";
 import ForgetPassword from "./pages/ForgetPassword.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { ToggleProvider } from "./contexts/ToggleSidebar.jsx";
+import UserProfile from "./pages/UserProfile.jsx";
+import PlaylistDetail from "./components/PlaylistDetail.jsx";
+import SubscribedTo from "./pages/userPages/SubscribedTo.jsx";
 
 function App() {
-  
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -28,14 +40,19 @@ function App() {
             <Route path="/" element={<RootLayout />}>
               <Route path="/" element={<Sidebar />}>
                 <Route path="/" element={<Home />} />
-                <Route path="/user/:userId" element={<h1>userProfile</h1>} />
+                <Route path="/user/:username" element={<UserProfile />} />
                 <Route path="/video/:videoId" element={<VideoDetail />} />
-                <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-                <Route path="/mycontent" element={<h1>uservideo</h1>} />
-                <Route path="/history" element={<h1>History</h1>} />
-                <Route path="/subscribers" element={<h1>subscribers</h1>} />
-                <Route path="/liked-video" element={<h1>liked videos</h1>} />
-                <Route path="/collections" element={<h1>collections</h1>} />
+                <Route
+                  path="/playlist/:playlistId"
+                  element={<PlaylistDetail />}
+                />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/mycontent" element={<VideosList />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/subscribers" element={<Subscribers />} />
+                <Route path="/subscribedTo" element={<SubscribedTo />} />
+                <Route path="/liked-video" element={<LikedVideo />} />
+                <Route path="/collections" element={<Playlist />} />
                 <Route path="/support" element={<h1>support</h1>} />
                 <Route path="setting" element={<h1>setting</h1>} />
               </Route>

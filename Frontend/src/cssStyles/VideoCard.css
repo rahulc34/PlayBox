@@ -78,9 +78,14 @@
 }
 
 .info-upper {
-  padding-bottom: 10px;
+  padding-bottom: 1px;
   font-size: 1.1rem;
   font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
 }
 
 .info-lower {

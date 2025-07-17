@@ -43,7 +43,6 @@ function VideoDetail() {
     getComment();
   }, [videoId]);
 
-  console.log("comment", comment);
   return (
     <div className="videoDetailWrapper">
       <div className="videoDetailCard">

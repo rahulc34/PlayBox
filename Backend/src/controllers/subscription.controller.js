@@ -25,7 +25,6 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 
   const isSubscribed = await Subscription.findOne(query);
 
-  console.log(isSubscribed);
   !isSubscribed
     ? await Subscription.create(query)
     : await Subscription.deleteOne(query);
@@ -49,13 +48,10 @@ const toggleSubscription = asyncHandler(async (req, res) => {
 // controller to return subscriber list of a channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
-  const userId = req.user._id.toString();
+  const userId = req.user?._id.toString();
+
   if (!isValidObjectId(channelId)) {
     throw new ApiError(400, "Invalid channel ID");
-  }
-
-  if (channelId !== userId) {
-    throw new ApiError(400, "you are not authorized");
   }
 
   const subscribers = await Subscription.aggregate([
@@ -68,6 +64,27 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         localField: "subscriber",
         foreignField: "_id",
         as: "user",
+        pipeline: [
+          {
+            $lookup: {
+              as: "subscribers",
+              localField: "_id",
+              foreignField: "channel",
+              from: "subscriptions",
+            },
+          },
+          {
+            $addFields: {
+              isSubscribed: {
+                $cond: {
+                  if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                  then: true,
+                  else: false,
+                },
+              },
+            },
+          },
+        ],
       },
     },
     {
@@ -79,6 +96,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         username: "$user.username",
         fullname: "$user.fullname",
         avatar: "$user.avatar",
+        isSubscribed: "$user.isSubscribed",
       },
     },
     {
@@ -87,6 +105,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         username: 1,
         fullname: 1,
         avatar: 1,
+        isSubscribed: 1,
       },
     },
   ]);
@@ -105,14 +124,9 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
-  const userId = req.user._id.toString();
 
   if (!isValidObjectId(subscriberId)) {
     throw new ApiError(400, "invalid id");
-  }
-
-  if (subscriberId !== userId) {
-    throw new ApiError(404, "unauthorize access");
   }
 
   const subscribedChannel = await Subscription.aggregate([
@@ -139,7 +153,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
               subscribersCount: {
                 $size: "$subscribers",
               },
-              isSubscibed: {
+              isSubscribed: {
                 $cond: {
                   if: { $in: [req.user?._id, "$subscribers.subscriber"] },
                   then: true,
@@ -162,7 +176,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         fullname: "$channel.fullname",
         avatar: "$channel.avatar",
         subscribersCount: "$channel.subscribersCount",
-        isSubscibed: "$channel.isSubscibed",
+        isSubscribed: "$channel.isSubscribed",
       },
     },
     {
@@ -173,7 +187,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
         email: 1,
         avatar: 1,
         subscribersCount: 1,
-        isSubscibed: 1,
+        isSubscribed: 1,
       },
     },
   ]);

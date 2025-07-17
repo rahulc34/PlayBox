@@ -2,10 +2,13 @@ import React from "react";
 
 const LikeBtn = ({ likes }) => {
   return (
-    <button className="like">
-      <p>{likes}</p>
-      <img src="./dsfjk" />
-    </button>
+    <div style={{ display: "flex", gap: "3px" }}>
+      <button className="like">
+        <p>{likes}</p>
+        <img src="./dsfjk" />
+      </button>
+      <button className="like">Save</button>
+    </div>
   );
 };
 
