@@ -39,7 +39,7 @@ function Profile({
       console.log(error);
     }
   };
-  console.log("profile data", isSubscribed);
+  
   return (
     <div className="profileContainer">
       <div className="bannerWrapper">

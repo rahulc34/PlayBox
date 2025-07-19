@@ -28,8 +28,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     userId,
     query,
   } = req.query;
-  console.log(page);
-  console.log(query);
+
   const filter = {};
   console.log(req.query);
   // filter on getting all video of user ---> request by any user to see his or others videos account
@@ -134,8 +133,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, isPublished } = req.body;
   const user = req.user;
+  console.log(req.body);
+  console.log(req.files);
   // TODO: get video, upload to cloudinary, create video
   //get the title and description from the req body
   //get the video and thumbnail file path from req.files
@@ -170,7 +171,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     thumbnail: thumbnail?.url || "",
     duration: videoFile.duration,
     views: 0,
-    isPublished: true,
+    likes: 0,
+    isPublished,
   });
 
   if (!video) {
@@ -180,12 +182,12 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
   return res
     .status(201)
-    .json(new ApiResponse(200, video, "video uploaded successfully"));
+    .json(new ApiResponse(200, null, "video uploaded successfully"));
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: get video by id
+  // TODO: get video by id
   // verify the video id of mongoose
   if (!isValidObjectId(videoId)) {
     throw new ApiError(400, "Invalid video ID");

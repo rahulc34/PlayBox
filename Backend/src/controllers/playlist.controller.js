@@ -6,7 +6,8 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, isPrivate } = req.body;
+  console.log(name, description, isPrivate);
   const owner = req.user._id.toString();
   //TODO: create playlist
   // check is name is valid
@@ -15,7 +16,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
   // return the response
 
   if (!name) {
-    return new ApiError(400, "Please enter a name for playlist");
+    throw new ApiError(400, "Please enter a name for playlist");
   }
 
   //checking if user is making using duplicate name of playlist
@@ -29,6 +30,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
     name,
     description,
     owner,
+    isPrivate,
     videos: [],
   });
 
@@ -67,7 +69,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         description: 1,
         owner: 1,
         totalVideos: 1,
-        private: 1,
+        isPrivate: 1,
       },
     },
   ]);
@@ -160,7 +162,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
         description: 1,
         owner: 1,
         videos: 1,
-        private: 1,
+        isPrivate: 1,
       },
     },
   ]);
@@ -288,7 +290,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
 
 const updatePlaylist = asyncHandler(async (req, res) => {
   const { playlistId } = req.params;
-  const { name, description } = req.body;
+  const { name, description, isPrivate } = req.body;
   const owner = req.user._id;
   //TODO: update playlist
   // validate the name and playlist id
@@ -308,10 +310,11 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new ApiError(404, "Playlist not found or unauthorized access");
   }
+  console.log(playlist)
 
   playlist.name = name;
   playlist.description = description;
-
+  playlist.isPrivate = isPrivate;
   const updatedPlaylist = await playlist.save();
 
   return res

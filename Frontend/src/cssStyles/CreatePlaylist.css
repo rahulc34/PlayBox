@@ -1,0 +1,66 @@
+.createPlaylistWrapper {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 200px;
+  min-height: 100px;
+}
+.deletemenu {
+  align-items: center;
+  justify-content: center;
+}
+.deletemenu button {
+  padding: 10px 20px;
+  border-radius: 1rem;
+  border: none;
+  box-shadow: 0 0 10px rgb(129, 125, 125);
+}
+.createPlaylistWrapper p {
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.createPlaylistWrapper .inputContainer {
+  margin-top: 10px;
+  position: relative;
+}
+
+.createPlaylistWrapper .inputContainer ul {
+  font-size: 0.9rem;
+  /* background-color: red; */
+  list-style: inside;
+  padding: 0 10px;
+}
+
+.createPlaylistWrapper .inputContainer span {
+  position: absolute;
+  left: 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.createPlaylistWrapper input {
+  padding: 1rem 0.8rem;
+  border-radius: 0.4rem;
+  border: none;
+}
+
+.btncontainer {
+  display: flex;
+  justify-content: end;
+}
+.create {
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.9rem;
+  border: none;
+  background-color: white;
+  color: black;
+  font-weight: 700;
+}
+
+.private {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 10px;
+}

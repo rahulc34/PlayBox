@@ -21,21 +21,18 @@ const storage = multer.diskStorage({
 const videoFilter = (req, file, cb) => {
   if (file.fieldname === "thumbnail") {
     if (file.size > 10 * 1024 * 1024) {
-      return cb("Thumbnail size exceeds 15MB");
+      return cb("Thumbnail size exceeds 10MB");
     }
     return cb(null, true);
   }
   const allowedFileType = [
     "video/mp4",
     "video/mov",
-    "video/avi",
-    "video/3gpp",
-    "video/mpg",
-    "video/wmv",
+    "video/3gp",
   ];
   if (!allowedFileType.includes(file.mimetype)) {
     cb(
-      "Please upload only file format of ( mp4, mov, 3gpp, mpg, wmv, avi )",
+      "Please upload only file format of ( mp4, mov, 3gp)",
       false
     );
   } else cb(null, true);

@@ -8,11 +8,14 @@ import { useParams } from "react-router-dom";
 import EmptyPage from "./EmptyPage.jsx";
 import UserHeader from "./UserHeader.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import VideoModel from "../model/VideoModel.jsx";
+import Model from "../model/Model.jsx";
 
 function VideoList({ userId }) {
   const [videos, setVideos] = useState(null);
   const query = `?page=1` + (userId ? `&userId=${userId}` : "");
   const { user } = useAuth();
+  const [open, setOpen] = useState(false);
 
   const getVideos = async () => {
     try {
@@ -37,7 +40,7 @@ function VideoList({ userId }) {
   return (
     <>
       {userId === user._id && (
-        <UserHeader title="Videos" count={videos?.length} />
+        <UserHeader title="Videos" count={videos?.length} isClose={setOpen} />
       )}
       <div className="grid-container">
         {videos &&
@@ -49,6 +52,9 @@ function VideoList({ userId }) {
           />
         )}
       </div>
+      <Model isClose={setOpen} isOpen={open}>
+        <VideoModel />
+      </Model>
     </>
   );
 }

@@ -1,0 +1,104 @@
+.dashboardVideos {
+  margin: 10px 10px;
+  overflow: hidden;
+  overflow-x: scroll;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.dashboard .grid-container {
+  box-shadow: 0 0 10px rgb(235, 231, 231);
+  margin-bottom: 40px;
+}
+
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 117px;
+  padding: 5px 2px;
+}
+.status-container span {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.status-container .main {
+  font-size: 2rem;
+}
+
+.tableStyle {
+  border-collapse: collapse;
+  font-size: 16px;
+  font-family: sans-serif;
+  width: 100%;
+  color: white;
+}
+
+.tableStyle thead tr {
+  background-color: black;
+  text-align: center;
+}
+
+.tableStyle th,
+.tableStyle td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #616161;
+}
+
+.tableStyle tbody tr {
+  background-color: #1b1919;
+  /* color: #43a047;  green 600*/
+  /* color: #ffa600; orange 600 */
+  /* color: #616161; */
+  /* color: #eeeeee; */
+  /* color: #a5d6a7; */
+}
+
+.publishedtext,
+.likesbtn,
+.viewsbtn {
+  padding: 0.125rem 0.375rem;
+  border-radius: 10px;
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+}
+
+tr .public {
+  border: 1px solid #2ddd35;
+  color: #1bda25;
+  text-align: center;
+}
+
+tr .private {
+  border: 1px solid #f54c09;
+  color: #f54c09;
+  text-align: center;
+}
+
+.likesbtn {
+  background-color: #9deca1;
+  color: rgb(7, 126, 7);
+  margin-bottom: 4px;
+}
+
+.viewsbtn {
+  align-items: center;
+  background-color: rgb(230, 130, 130);
+  color: rgb(202, 9, 9);
+}
+
+.editbtn button {
+  height: 20px;
+  width: 20px;
+  background-color: inherit;
+  border: none;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

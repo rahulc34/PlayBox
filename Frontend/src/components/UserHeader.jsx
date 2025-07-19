@@ -1,10 +1,12 @@
 import React from "react";
 
-function UserHeader({ count, title }) {
+function UserHeader({ count, title, isClose }) {
   return (
     <div className="playlist-header">
-      <p className="name">{count} {title}</p>
-      <button>create</button>
+      <p className="name">
+        {count} {title}
+      </p>
+      <button onClick={isClose}>create</button>
     </div>
   );
 }
