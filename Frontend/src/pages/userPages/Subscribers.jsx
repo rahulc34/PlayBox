@@ -7,6 +7,7 @@ import { useAuth } from "../../contexts/AuthContext.jsx";
 import EmptyPage from "../../components/EmptyPage.jsx";
 import { useNavigate } from "react-router-dom";
 import Subscribe from "../../components/Subscribe.jsx";
+import CenterDiv from "../../components/CenterDiv.jsx";
 
 function Subscribers({ userId }) {
   const { user } = useAuth();
@@ -36,7 +37,6 @@ function Subscribers({ userId }) {
     <div className="subscribeWrapper">
       {subscribers &&
         subscribers.map(({ _id, username, fullname, avatar, isSubscribed }) => {
-          console.log(username, isSubscribed);
           return (
             <div className="subscribeCard" key={_id}>
               <div
@@ -58,10 +58,12 @@ function Subscribers({ userId }) {
           );
         })}
       {!subscribers.length && (
-        <EmptyPage
-          title="No subscribers"
-          desc="No one has subscribed this channel"
-        />
+        <CenterDiv>
+          <EmptyPage
+            title="No subscribers"
+            desc="No one has subscribed this channel"
+          />
+        </CenterDiv>
       )}
     </div>
   );

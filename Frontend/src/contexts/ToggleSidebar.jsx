@@ -4,7 +4,7 @@ const ToggleContext = createContext();
 const useToggle = () => useContext(ToggleContext);
 
 const ToggleProvider = ({ children }) => {
-  const [isToggle, setIsToggle] = useState(true);
+  const [isToggle, setIsToggle] = useState(false);
   const [isToggleBtnShow, setIsToggleBtnShow] = useState(true);
 
   return (

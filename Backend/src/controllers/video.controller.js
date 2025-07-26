@@ -1,6 +1,8 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
+import { Like } from "../models/like.model.js";
+import { Playlist } from "../models/playlist.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -22,15 +24,16 @@ const getAllVideos = asyncHandler(async (req, res) => {
   const {
     page = 1,
     limit = 10,
-    sortType = "desc",
-    sortBy = "createdAt",
-    duration,
+    sortType = "desc", // desc, asc
+    sortBy = "createdAt", // createdAt or views
+    uploadDate, //hour, today, week, month, year
+    duration, // short, medium , long
     userId,
     query,
   } = req.query;
 
-  const filter = {};
   console.log(req.query);
+  const filter = {};
   // filter on getting all video of user ---> request by any user to see his or others videos account
   if (userId) {
     filter.owner = new mongoose.Types.ObjectId(userId);
@@ -48,13 +51,13 @@ const getAllVideos = asyncHandler(async (req, res) => {
   if (duration) {
     if (duration === "short") {
       // Less than 4 minutes
-      filter.duration = { $lt: 4 };
+      filter.duration = { $lt: 4 * 60 };
     } else if (duration === "medium") {
       // Between 4 and 20 minutes
-      filter.duration = { $gte: 4, $lte: 20 };
+      filter.duration = { $gte: 4 * 60, $lte: 20 * 60 };
     } else if (duration === "long") {
       // Greater than 20 minutes
-      filter.duration = { $gt: 20 };
+      filter.duration = { $gt: 20 * 60 };
     }
   }
 
@@ -64,10 +67,44 @@ const getAllVideos = asyncHandler(async (req, res) => {
     [sortBy]: sortOrder,
   };
 
-  //paginations options
+  if (uploadDate) {
+    const date = new Date();
+    const [year, month, hour, currDate] = [
+      date.getFullYear(),
+      date.getMonth(),
+      date.getHours(),
+      date.getDate(),
+    ];
+
+    if (uploadDate === "hour") {
+      const startHour = new Date();
+      startHour.setHours(hour - 1);
+      filter.createdAt = { $gt: startHour };
+    } else if (uploadDate === "today") {
+      const startToday = new Date();
+      startToday.setHours(0, 0, 0, 0);
+      filter.createdAt = { $gt: startToday };
+    } else if (uploadDate === "week") {
+      const startWeek = new Date();
+      startWeek.setDate(currDate - date.getDay());
+      startWeek.setHours(0, 0, 0, 0);
+      filter.createdAt = { $gt: startWeek };
+    } else if (uploadDate === "month") {
+      const startMonth = new Date();
+      startMonth.setDate(1);
+      startMonth.setHours(0, 0, 0, 0);
+      filter.createdAt = { $gt: startMonth };
+    } else if (uploadDate === "year") {
+      const startYear = new Date();
+      startYear.setMonth(0);
+      startYear.setDate(1);
+      startYear.setHours(0, 0, 0, 0);
+      filter.createdAt = { $gt: startYear };
+    }
+  }
+
   const skip = (page - 1) * limit;
 
-  console.log(filter, page, limit, skip);
   // pipeline for query
   const pipeline = [
     { $match: filter },
@@ -111,7 +148,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   // get videos from database
   const videos = await Video.aggregate(pipeline);
-
   //count all documents
   const totalVideos = await Video.countDocuments(filter);
 
@@ -187,6 +223,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
+  const userId = new mongoose.Types.ObjectId(req.user._id);
   // TODO: get video by id
   // verify the video id of mongoose
   if (!isValidObjectId(videoId)) {
@@ -254,6 +291,28 @@ const getVideoById = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Video not found");
   }
 
+  const likedby = await Like.findOne({
+    video: new mongoose.Types.ObjectId(videoId),
+    likedBy: userId,
+  });
+
+  likedby ? (video[0].likedby = true) : (video[0].likedby = false);
+
+  const alreadySaved = await Playlist.findOne({
+    owner: userId,
+    videos: new mongoose.Types.ObjectId(videoId),
+  });
+
+  console.log(userId, videoId);
+  console.log("skjdfh");
+  console.log(alreadySaved);
+
+  if (alreadySaved) {
+    video[0].PlaylistId = alreadySaved._id;
+  }
+
+  console.log(video);
+
   return res
     .status(201)
     .json(new ApiResponse(200, video[0], "video is fetched successfully"));
@@ -282,40 +341,47 @@ const updateVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Unauthorized video file");
   }
 
-  const { title, description } = req.body;
+  const { title, description, isPublished } = req.body;
   const thumbnailpath = req.file?.path;
-  const thumbnailPublicId = video.thumbnail.split("/").pop().split(".")[0];
+  const thumbnailPublicId = video.thumbnail?.split("/")?.pop()?.split(".")?.[0];
 
-  console.log(title, description, thumbnailpath);
-  if (!thumbnailpath) {
-    throw new ApiError(400, "upload the thumbnail to update");
-  }
+  console.log(title, description, isPublished, thumbnailpath);
 
-  console.log("uploding new thumbnail......");
-  const respose = await uploadOnCloudinary(thumbnailpath);
+  let updatedVideo;
+  if (thumbnailpath) {
+    console.log("uploding new thumbnail......");
+    const respose = await uploadOnCloudinary(thumbnailpath);
+    console.log("deleting old thumbnail......");
+    await deleteFromCloudinary(thumbnailPublicId, "image");
+    const thumbnail = respose.url;
 
-  console.log("deleting old thumbnail......");
-  await deleteFromCloudinary(thumbnailPublicId, "image");
+    updatedVideo = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $set: { title, description, thumbnail, isPublished },
+      },
+      { new: true }
+    );
 
-  const thumbnail = respose.url;
-  const updatedVideo = await Video.findByIdAndUpdate(
-    videoId,
-    {
-      $set: { title, description, thumbnail },
-    },
-    { new: true }
-  );
-
-  if (!updateVideo) {
-    throw new ApiError(
-      400,
-      "something went wrong while updating title and desctiption"
+    if (!updateVideo) {
+      throw new ApiError(
+        400,
+        "something went wrong while updating title and desctiption"
+      );
+    }
+  } else {
+    updatedVideo = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        $set: { title, description, isPublished },
+      },
+      { new: true }
     );
   }
 
   return res
     .status(201)
-    .json(new ApiResponse(200, "video is updated successfully"));
+    .json(new ApiResponse(200, updatedVideo, "video is updated successfully"));
 });
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -352,17 +418,20 @@ const deleteVideo = asyncHandler(async (req, res) => {
     thumbnailPublicId,
     "image"
   );
-
-  if (
-    videoResult === "not found" ||
-    thumbnailResult === "not found" ||
-    videoResult === "error" ||
-    thumbnailResult === "error"
-  ) {
-    throw new ApiError(400, "Video file not found on Cloudinary");
-  }
   //deleting video details from database
   await Video.findByIdAndDelete(video._id);
+
+  await Playlist.updateMany(
+    { videos: video._id },
+    { $pull: { videos: video._id } }
+  );
+
+  await Like.deleteAll({ video: video._id });
+
+  await User.updateMany(
+    { watchHistory: video._id },
+    { $pull: { watchHistory: video._id } }
+  );
 
   return res
     .status(201)
@@ -401,6 +470,30 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, "toggle publish status successfully"));
 });
 
+const increaseLikeAndSaveToHistory = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  if (!isValidObjectId(videoId)) {
+    throw new ApiError(400, "Video id is not valid");
+  }
+
+  const video = await Video.findById(videoId);
+
+  if (!video) {
+    throw new ApiError(400, "Video does not exist");
+  }
+
+  const user = await User.findById(req.user._id);
+  user.watchHistory.push(videoId);
+  video.views = (video?.views || 0) + 1;
+
+  await video.save();
+  await user.save();
+  console.log(video, user);
+
+  return res.status(200).json(new ApiResponse(200, null, "views increased"));
+});
+
 export {
   getAllVideos,
   publishAVideo,
@@ -408,4 +501,5 @@ export {
   updateVideo,
   deleteVideo,
   togglePublishStatus,
+  increaseLikeAndSaveToHistory,
 };

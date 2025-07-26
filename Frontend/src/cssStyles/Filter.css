@@ -1,0 +1,74 @@
+.filter {
+  padding-top: 20px;
+}
+select,
+option {
+  padding: 0.2rem;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 3px 3px rgb(211, 211, 211);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px;
+}
+
+select:checked {
+  border: 1px solid rgb(63, 63, 238);
+  background-color: rgb(221, 221, 255);
+  color: rgb(63, 63, 238);
+  text-shadow: 0 1px 1px rgb(129, 125, 125);
+  box-shadow: none;
+}
+
+.filterWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.filterWrapper label {
+  font-size: 0.9rem;
+}
+
+.filter .open {
+  display: none;
+}
+
+
+
+@media (max-width: 566px) {
+  .filterWrapper {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 10px;
+    padding: 10px;
+    background-color: #f6f8fa;
+    border-radius: 8px;
+    z-index: 6;
+    box-shadow: 0 0 2px rgb(155, 154, 154);
+  }
+
+  .filter .open {
+    display: block;
+    margin-left: 10px;
+  }
+
+  .disablefilter {
+    display: none;
+  }
+}
+
+.disablefilter {
+  transition: all 0.3s ease;
+}
+
+.applyFilter {
+  border: 0;
+  padding: 0.4rem;
+  border: 2px solid rgb(170, 248, 170);
+  border-radius: 8px;
+  color: rgb(0, 163, 0);
+  background-color: white;
+}

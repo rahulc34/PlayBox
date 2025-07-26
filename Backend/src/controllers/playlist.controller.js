@@ -87,7 +87,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   // find the playlist in db
   // check if playlist owner is user
   // return response
-  console.log(playlistId);
+  console.log("gettng playlistbyid-->", playlistId);
 
   if (!isValidObjectId(playlistId)) {
     throw new ApiError(400, "invalid playlist ID");
@@ -171,6 +171,7 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
+  console.log("got-->", playlist);
   return res
     .status(200)
     .json(
@@ -229,6 +230,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
+  console.log(playlistId, videoId);
   const owner = req.user._id;
   // TODO: remove video from playlist
   // check if id are the valid object id
@@ -237,15 +239,15 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   // return the response
 
   if (!isValidObjectId(playlistId)) {
-    throw new ApiError(400, "Invalid playlistId");
+    throw new ApiError(400, "Invalid playlistId!");
   }
   if (!isValidObjectId(videoId)) {
-    throw new ApiError(400, "Invalid playlistId");
+    throw new ApiError(400, "Invalid playlistId!");
   }
 
   const playlist = await Playlist.findOne({ _id: playlistId, owner });
   if (!playlist) {
-    throw new ApiError(400, "playlist is not exist");
+    throw new ApiError(400, "playlist is not exist!");
   }
 
   playlist.videos = playlist.videos.filter((id) => id.toString() !== videoId);
@@ -310,7 +312,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new ApiError(404, "Playlist not found or unauthorized access");
   }
-  console.log(playlist)
+  console.log(playlist);
 
   playlist.name = name;
   playlist.description = description;

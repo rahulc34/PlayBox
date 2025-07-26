@@ -44,7 +44,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
         video: 1,
         username: 1,
         avatar: 1,
-        owner:1,
+        owner: 1,
         createdAt: 1,
       },
     },

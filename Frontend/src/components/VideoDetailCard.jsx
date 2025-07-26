@@ -1,25 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { axiosPrivate } from "../api/axios.js";
 import LikeBtn from "./LikeBtn.jsx";
 import Subscribe from "./Subscribe.jsx";
 import { Navigate } from "react-router-dom";
-import Save from "./Save.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import Model from "../model/Model.jsx";
+import AddVideoToPlaylist from "./AddVideoToPlaylist.jsx";
 
-const VideoDetailCard = ({
-  _id: videoId,
-  owner,
-  videoFile,
-  thumbnail,
-  title,
-  description,
-  duration,
-  views,
-  likes,
-  isPublished,
-  createdAt,
-}) => {
+const VideoDetailCard = ({ video, setVideo }) => {
+  const {
+    _id: videoId,
+    owner,
+    videoFile,
+    title,
+    description,
+    views,
+    // likes,
+    // likedby,
+    PlaylistId: alreadySaved,
+    createdAt,
+  } = video;
   const {
     _id: userId,
     username,
@@ -32,7 +33,29 @@ const VideoDetailCard = ({
   const navigate = useNavigate();
   const [readMore, setReadMore] = useState(false);
   const [totalSubscription, setTotalSubscription] = useState(subscribersCount);
+  const [addOpenPlaylist, setAddOpenPlaylist] = useState(false);
+  const [isSaved, setIsSaved] = useState(alreadySaved || false);
   const { user } = useAuth();
+
+  const removeVideoFromPlaylist = async () => {
+    try {
+      const respone = await axiosPrivate.patch(
+        `/api/v1/playlist/remove/${videoId}/${isSaved}`
+      );
+
+      if (respone.data.success) {
+        setIsSaved("");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    setIsSaved(alreadySaved || false);
+    setTotalSubscription(subscribersCount);
+  }, [video]);
+
   return (
     <>
       <div className="videoWrapper">
@@ -46,12 +69,20 @@ const VideoDetailCard = ({
             <span className="title">{title}</span>
             <p>
               <span>{views} views.</span>
-              <span>{createdAt}</span>
+              <span> {new Date(createdAt).toLocaleDateString()}</span>
             </p>
           </div>
           <div style={{ display: "flex", gap: "3px" }}>
-            {videoId && <LikeBtn likes={likes} videoId={videoId} />}
-            <button className="like">Save</button>
+            {videoId && <LikeBtn setVideo={setVideo} video={video} />}
+            <button
+              className="like"
+              onClick={() => {
+                if (isSaved) removeVideoFromPlaylist();
+                else setAddOpenPlaylist(true);
+              }}
+            >
+              {isSaved ? "Saved" : "save"}
+            </button>
           </div>
         </div>
         <div className="lower-detail">
@@ -82,6 +113,15 @@ const VideoDetailCard = ({
           </span>
         </p>
       </div>
+      <Model isOpen={addOpenPlaylist} isClose={setAddOpenPlaylist}>
+        <AddVideoToPlaylist
+          videoId={videoId}
+          setIsSaved={setIsSaved}
+          setIsClosePlaylistAdd={setAddOpenPlaylist}
+          video={video}
+          setVideo={setVideo}
+        />
+      </Model>
     </>
   );
 };

@@ -4,6 +4,7 @@ import { axiosPrivate } from "../../api/axios";
 import { useAuth } from "../../contexts/AuthContext";
 import EmptyPage from "../../components/EmptyPage";
 import Subscribe from "../../components/Subscribe";
+import CenterDiv from "../../components/CenterDiv";
 
 function SubscribedTo({ userId }) {
   const { user } = useAuth();
@@ -30,41 +31,42 @@ function SubscribedTo({ userId }) {
 
   return (
     <div className="subscribeWrapper">
-      {subscribedTo.length &&
-        subscribedTo &&
-        subscribedTo.map(
-          ({ _id, username, fullname, avatar, isSubscribed }) => {
-            console.log(_id, userId);
-            return (
-              <div className="subscribeCard" key={_id}>
-                <div
-                  className="profile"
-                  onClick={() => navigate(`/user/${username}`)}
-                >
-                  <div className="profile-container">
-                    <img
-                      src={avatar}
-                      alt="profile picture"
-                      className="profile"
-                    />
+      {subscribedTo && subscribedTo.length
+        ? subscribedTo.map(
+            ({ _id, username, fullname, avatar, isSubscribed }) => {
+              return (
+                <div className="subscribeCard" key={_id}>
+                  <div
+                    className="profile"
+                    onClick={() => navigate(`/user/${username}`)}
+                  >
+                    <div className="profile-container">
+                      <img
+                        src={avatar}
+                        alt="profile picture"
+                        className="profile"
+                      />
+                    </div>
+                    <div className="info">
+                      <span className="info-upper">{username}</span>
+                      <span className="info-lower">{fullname}</span>
+                    </div>
                   </div>
-                  <div className="info">
-                    <span className="info-upper">{username}</span>
-                    <span className="info-lower">{fullname}</span>
-                  </div>
+                  {user._id !== _id && isSubscribed !== undefined && (
+                    <Subscribe userId={_id} isSubscribed={isSubscribed} />
+                  )}
                 </div>
-                {user._id !== _id && isSubscribed !== undefined && (
-                  <Subscribe userId={_id} isSubscribed={isSubscribed} />
-                )}
-              </div>
-            );
-          }
-        )}
+              );
+            }
+          )
+        : ""}
       {!subscribedTo.length && (
-        <EmptyPage
-          title="No subscribed to"
-          desc="You have not subscribed to any channel"
-        />
+        <CenterDiv>
+          <EmptyPage
+            title="No subscribed to"
+            desc="You have not subscribed to any channel"
+          />
+        </CenterDiv>
       )}
     </div>
   );

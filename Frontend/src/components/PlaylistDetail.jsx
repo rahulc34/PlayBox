@@ -17,7 +17,7 @@ function PlaylistDetail() {
 
   const getPlaylistDetail = async () => {
     try {
-      const response = await axiosPrivate.get(`api/v1/playlist/${playlistId}`);
+      const response = await axiosPrivate.get(`/api/v1/playlist/${playlistId}`);
       const data = response.data;
       if (data.success) {
         const { _id, name, description, videos, isPrivate, owner } = data.data;
@@ -26,7 +26,7 @@ function PlaylistDetail() {
           name,
           description,
           isPrivate,
-          imageUrl: videos?.[1]?.thumbnail,
+          imageUrl: videos?.[0]?.thumbnail,
           owner,
         });
         setVideos(videos);

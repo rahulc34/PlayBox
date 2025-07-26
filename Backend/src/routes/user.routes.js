@@ -19,8 +19,6 @@ import { uploadHandler } from "../middlewares/multer/multer.uploadHandler.js";
 import { uploadImage } from "../middlewares/multer/multer.image.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifiedEmail } from "../middlewares/emailVerified.middleware.js";
-import { ApiError } from "../utils/apiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 

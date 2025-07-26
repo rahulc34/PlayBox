@@ -64,3 +64,8 @@
   font-weight: 700;
   margin: 10px;
 }
+
+.closewrapper {
+  width: 100vw;
+  height: 100vh;
+}

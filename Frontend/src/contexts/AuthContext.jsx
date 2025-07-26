@@ -86,7 +86,7 @@ const AuthProvider = ({ children }) => {
   const logout = async () => {
     console.log("logout -> ", user?.username);
     try {
-      const response = await axios.post("api/v1/users/logout", {
+      const response = await axios.post("/api/v1/users/logout", {
         withCredentials: true,
       });
       const data = response.data;
@@ -108,7 +108,7 @@ const AuthProvider = ({ children }) => {
 
     const getUser = async () => {
       try {
-        const response = await axiosPrivate.get("api/v1/users/current-user", {
+        const response = await axiosPrivate.get("/api/v1/users/current-user", {
           signal: controller.signal,
         });
         const data = response.data;

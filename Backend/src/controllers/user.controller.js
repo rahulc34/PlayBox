@@ -493,8 +493,10 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     throw new ApiError(400, "coverImage file is missing");
   }
 
+  console.log("uploading the image");
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
+  console.log("uploaded");
   if (!coverImage.url) {
     throw new ApiError(400, "Error while uploadind on avatar");
   }
@@ -573,7 +575,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  
+
   if (!channel?.length) {
     throw new ApiError(400, "channel don't exist");
   }
@@ -592,7 +594,6 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     {
       $match: {
         _id: new mongoose.Types.ObjectId(req.user?._id),
-        owner: new mongoose.Types.ObjectId(owner),
       },
     },
     {
@@ -607,7 +608,7 @@ const getWatchHistory = asyncHandler(async (req, res) => {
               from: "users",
               localField: "owner",
               foreignField: "_id",
-              as: "owner",
+              as: "ownerInfo",
               pipeline: [
                 {
                   $project: {
@@ -619,19 +620,16 @@ const getWatchHistory = asyncHandler(async (req, res) => {
               ],
             },
           },
+
           {
-            $addFields: {
-              owner: {
-                $first: "owner",
-              },
-            },
+            $unwind: "$owner",
           },
         ],
       },
     },
   ]);
 
-  console.log(user);
+  user[0].owner = user[0]?.ownerInfo?._id;
 
   return res
     .status(200)

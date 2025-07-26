@@ -3,12 +3,16 @@ import "./RootLayout.css";
 import { Outlet, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToggle } from "../contexts/ToggleSidebar.jsx";
+import openMenu from "../assests/menu-bar.png";
+import closeMenu from "../assests/close_menu_bar.png";
+import logoutIcon from "../assests/logout.png";
 
 function RootLayout() {
   const toggleRef = useRef();
   const { user, isVerified, isAuthenticated, logout, sendVerifyLink } =
     useAuth();
   const { isToggle, setIsToggle, isToggleBtnShow } = useToggle();
+  const menuBarUrl = isToggle ? closeMenu : openMenu;
   return (
     <>
       <header>
@@ -19,8 +23,18 @@ function RootLayout() {
                 onClick={() => {
                   setIsToggle(!isToggle);
                 }}
+                style={{
+                  border: "0",
+                  backgroundColor: "inherit",
+                  height: "35px",
+                  width: "35px",
+                }}
               >
-                {isToggle ? "close" : "open"}
+                <img
+                  src={menuBarUrl || null}
+                  width={isToggle ? "32px" : "20px"}
+                  alt="icon"
+                />
               </button>
             )}
           </li>
@@ -30,12 +44,24 @@ function RootLayout() {
             </Link>
           </li>
           <li>
-            <input type="text" placeholder="Search..." />
+            <input
+              type="text"
+              className="searchInput"
+              placeholder="Search..."
+              style={{
+                minHeight: "42px",
+                borderRadius: "24px",
+                color: "black",
+                fontWeight: "700",
+                border: "1px solid black",
+                paddingLeft: "9px",
+              }}
+            />
           </li>
           {isAuthenticated ? (
             <>
-              <li>
-                <Link to="/dashboard">
+              <li className="dashboardButton">
+                <Link to={`/user/${user.username}`}>
                   <p>{user.username[0].toUpperCase()}</p>
                 </Link>
               </li>
@@ -52,7 +78,20 @@ function RootLayout() {
                 </li>
               )}
               <li>
-                <button onClick={logout}>Logout</button>
+                <button
+                  onClick={logout}
+                  style={{
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "2px",
+                    fontSize: "0.7rem",
+                    backgroundColor: "inherit",
+                  }}
+                >
+                  <img src={logoutIcon} alt="" width="17px" />
+                  Logout
+                </button>
               </li>
             </>
           ) : (

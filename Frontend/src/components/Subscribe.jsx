@@ -3,7 +3,7 @@ import { axiosPrivate } from "../api/axios";
 
 function Subscribe({ setTotalSubscription, isSubscribed, userId }) {
   const [subscribed, setSubscribed] = useState(isSubscribed);
-  
+
   const toggleSubscribe = async () => {
     try {
       const response = await axiosPrivate.post(

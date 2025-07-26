@@ -6,7 +6,6 @@ import { Tweet } from "../models/tweet.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { ApiError } from "../utils/apiError.js";
-import { pipeline } from "stream";
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
@@ -25,10 +24,11 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
   const countLike = await Like.countDocuments({
     video: new mongoose.Types.ObjectId(videoId),
   });
+
   const like = await Like.findOne({ video: videoId, likedBy: userId });
   if (!like) {
     const createdLike = await Like.create({ video: videoId, likedBy: userId });
-    video.likes = (video.likes || 0) + 1;
+    video.likes = (countLike || 0) + 1;
     await video.save();
 
     return res
@@ -36,14 +36,14 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { like: countLike + 1 },
+          { likes: (countLike || 0) + 1 },
           `video is Liked successfully`
         )
       );
   }
 
   const dislike = await Like.deleteOne({ video: videoId, likedBy: userId });
-  video.likes = video.likes ? video.likes - 1 : 0;
+  video.likes = countLike >= 0 ? countLike - 1 : 0;
   await video.save();
 
   return res
@@ -51,7 +51,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { like: countLike >= 0 ? countLike - 1 : 0 },
+        { likes: countLike >= 0 ? countLike - 1 : 0 },
         `video is dislike successfully`
       )
     );

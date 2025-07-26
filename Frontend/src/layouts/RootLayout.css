@@ -31,6 +31,27 @@ main {
   grid-template-columns: auto 1fr;
 }
 
+.dashboardButton {
+  border: 1px solid rgb(65, 14, 124);
+  font-size: 1.1rem;
+  border-radius: 50%;
+  height: 36px;
+  width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: blue;
+  background-color: rgb(191, 193, 196);
+}
+
+.searchInput {
+  border-radius: 20px;
+  border: none;
+  background-color: white;
+  color: grey;
+}
+
 @media (max-width: 364px) {
   header ul li input {
     width: 50%;
