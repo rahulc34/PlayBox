@@ -18,7 +18,12 @@ const getVideoComments = asyncHandler(async (req, res) => {
 
   // Fetch comments using aggregation pipeline
   const comments = await Comment.aggregate([
-    { $match: { video: new mongoose.Types.ObjectId(videoId) } },
+    {
+      $match: {
+        video: new mongoose.Types.ObjectId(videoId),
+        parentComment: null,
+      },
+    },
     { $sort: { createdAt: -1 } }, // Sort by newest first
     { $skip: skip },
     { $limit: parseInt(limit) },
@@ -35,6 +40,31 @@ const getVideoComments = asyncHandler(async (req, res) => {
       $addFields: {
         username: "$user.username",
         avatar: "$user.avatar",
+        reply: {
+          $size: { $ifNull: ["$commentList", []] },
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        as: "likes",
+        localField: "_id",
+        foreignField: "comment",
+      },
+    },
+    {
+      $addFields: {
+        likedby: {
+          $cond: {
+            if: { $in: [req.user?._id, "$likes.likedBy"] },
+            then: true,
+            else: false,
+          },
+        },
+        likes: {
+          $size: "$likes",
+        },
       },
     },
     {
@@ -45,7 +75,10 @@ const getVideoComments = asyncHandler(async (req, res) => {
         username: 1,
         avatar: 1,
         owner: 1,
+        reply: 1,
         createdAt: 1,
+        likes: 1,
+        likedby: 1,
       },
     },
   ]);
@@ -103,16 +136,6 @@ const addComment = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Video does not exist");
   }
 
-  // Optionally check for duplicate comments
-  const duplicateComment = await Comment.findOne({
-    content: content.trim(),
-    video: videoId,
-    owner,
-  });
-  if (duplicateComment) {
-    throw new ApiError(400, "Duplicate comment detected");
-  }
-
   // creating the comment
   const comment = await Comment.create({
     content: content.trim(),
@@ -128,6 +151,49 @@ const addComment = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, comment, "comment added successfully to video"));
+});
+
+const addReplyToComment = asyncHandler(async (req, res) => {
+  const { videoId, commentId } = req.params;
+  const { content } = req.body;
+  const user = req.user._id.toString();
+
+  if (!content || !content.trim()) {
+    throw new ApiError(400, "please enter content");
+  }
+  console.log(videoId, commentId);
+  if (!isValidObjectId(videoId) && !isValidObjectId(commentId)) {
+    throw new ApiError(400, "Invalid object id");
+  }
+
+  const comment = await Comment.findById(commentId);
+  console.log(comment);
+  if (comment.video.toString() !== videoId) {
+    throw new ApiError(400, "Invalid video id");
+  }
+
+  const createCommentReply = await Comment.create({
+    content,
+    video: videoId,
+    owner: user,
+    parentComment: comment._id,
+  });
+
+  if (!createCommentReply) {
+    throw new ApiError(400, "error while reply creation");
+  }
+  comment.commentList.push(createCommentReply._id);
+  await comment.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        createCommentReply,
+        "reply is added to comment successfully"
+      )
+    );
 });
 
 const updateComment = asyncHandler(async (req, res) => {
@@ -195,33 +261,21 @@ const deleteComment = asyncHandler(async (req, res) => {
   }
 
   //check if owner is deleting the comment
-  if (comment.owner?.toString() === owner) {
-    await Comment.findByIdAndDelete(commentId);
-    return res
-      .status(200)
-      .json(new ApiResponse(200, null, "comment deleted succsessfully"));
+  if (comment.owner?.toString() !== owner) {
+    throw new ApiError(400, "unauthorize access");
   }
 
-  // get the video owner, who want to delete
-  const videoId = comment.video;
-  if (!videoId || !isValidObjectId(videoId)) {
-    throw new ApiError(400, null, "comment deleted succsessfully");
-  }
-  const video = await Video.findById(videoId);
-
-  if (!video) {
-    throw new ApiError(400, "video does not exist");
-  }
-
-  if (video.owner?.toString() !== owner) {
-    throw new ApiError(400, "you are not authorized to delete this comment");
-  }
-
-  await Video.findByIdAndDelete(commentId);
-
+  await Comment.deleteMany({ parentComment: commentId });
+  await Comment.findByIdAndDelete(commentId);
   return res
     .status(200)
     .json(new ApiResponse(200, null, "comment deleted succsessfully"));
 });
 
-export { getVideoComments, addComment, updateComment, deleteComment };
+export {
+  getVideoComments,
+  addComment,
+  updateComment,
+  deleteComment,
+  addReplyToComment,
+};

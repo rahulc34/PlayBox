@@ -1,6 +1,7 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Video } from "../models/video.model.js";
 import { User } from "../models/user.model.js";
+import { Comment } from "../models/comment.model.js";
 import { Like } from "../models/like.model.js";
 import { Playlist } from "../models/playlist.model.js";
 import { ApiError } from "../utils/apiError.js";
@@ -411,6 +412,8 @@ const deleteVideo = asyncHandler(async (req, res) => {
   );
 
   await Like.deleteAll({ video: video._id });
+
+  await Comment.deleteAll({ video: video._id });
 
   await User.updateMany(
     { watchHistory: video._id },

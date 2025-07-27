@@ -9,7 +9,7 @@ import dislikelogo from "../assests/thumb.png";
 import likelogo from "../assests/like.png";
 
 function PostList({ userId }) {
-  const [posts, setposts] = useState("");
+  const [posts, setposts] = useState([]);
   const { user } = useAuth();
 
   const getAllPost = async () => {
@@ -27,7 +27,7 @@ function PostList({ userId }) {
 
   useEffect(() => {
     getAllPost();
-  }, []);
+  }, [userId]);
 
   const createPost = async (content) => {
     if (!content?.trim()) return;
@@ -48,9 +48,32 @@ function PostList({ userId }) {
     try {
       const response = await axiosPrivate.delete(`/api/v1/tweets/${tweetId}`);
       if (response.data.success) {
-        // setposts((prev) => {
-        //   return prev.filter((tweet) => (tweet._id !== tweetId ? tweet));
-        // });
+        const post = response.data.data;
+        setposts((prev) => prev.filter((post) => post._id !== tweetId));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const toggleTweetLike = async (tweetId) => {
+    try {
+      const response = await axiosPrivate.post(
+        `/api/v1/likes/toggle/t/${tweetId}`
+      );
+
+      if (response.data.success) {
+        const { likes } = response.data.data || {};
+        console.log(likes);
+        setposts((prev) =>
+          prev.map((post) => {
+            if (post._id === tweetId) {
+              const likedby = post.likedby
+              const newpost = { ...post, likedby: !likedby, likes };
+              return newpost;
+            } else return post;
+          })
+        );
       }
     } catch (error) {
       console.log(error);
@@ -66,8 +89,8 @@ function PostList({ userId }) {
       )}
       {userId === user._id && <PostCreate submitHandler={createPost} />}
       <div className="plylistwrapper">
-        {posts &&
-          posts.map(({ owner, content, _id, createdAt, likedby, likes }) => {
+        {posts.length &&
+          posts.map(({ content, _id, createdAt, likedby, likes }) => {
             const likeBtnUrl = likedby ? likelogo : dislikelogo;
             return (
               <div key={_id} className="playlistcontain">
@@ -88,7 +111,12 @@ function PostList({ userId }) {
                       <img src={deleteIcon} alt="delete" width="19px" />
                     </button>
                   )}
-                  <button className="like" onClick={() => {}}>
+                  <button
+                    className="like"
+                    onClick={() => {
+                      toggleTweetLike(_id);
+                    }}
+                  >
                     <p>{likes || 0}</p>
                     <img src={likeBtnUrl} />
                   </button>

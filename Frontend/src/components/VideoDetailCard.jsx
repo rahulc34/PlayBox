@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { axiosPrivate } from "../api/axios.js";
 import LikeBtn from "./LikeBtn.jsx";
 import Subscribe from "./Subscribe.jsx";
-import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import Model from "../model/Model.jsx";
 import AddVideoToPlaylist from "./AddVideoToPlaylist.jsx";
+import CommentList from "./CommentList.jsx";
 
 const VideoDetailCard = ({ video, setVideo }) => {
   const {
@@ -112,6 +112,9 @@ const VideoDetailCard = ({ video, setVideo }) => {
             more
           </span>
         </p>
+        <div>
+          <CommentList videoId={videoId} />
+        </div>
       </div>
       <Model isOpen={addOpenPlaylist} isClose={setAddOpenPlaylist}>
         <AddVideoToPlaylist

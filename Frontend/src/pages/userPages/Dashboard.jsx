@@ -72,7 +72,7 @@ function Dashboard() {
               <button
                 style={{
                   border: "1px solid red",
-                  color:"red",
+                  color: "red",
                   padding: "0.125rem 0.365rem",
                   fontWeight: "600",
                   borderRadius: "0.3rem",
@@ -193,6 +193,11 @@ function Dashboard() {
                               setVideoId(_id);
                               setDeleteVideo(true);
                             }}
+                            style={{
+                              width: "22px",
+                              backgroundColor: "inherit",
+                              border: "0",
+                            }}
                           >
                             <svg
                               viewBox="0 0 24 24"
@@ -251,6 +256,11 @@ function Dashboard() {
                             onClick={() => {
                               setEditVideo(video);
                               setIsEditVideo(true);
+                            }}
+                            style={{
+                              width: "20px",
+                              backgroundColor: "inherit",
+                              border: "0",
                             }}
                           >
                             <svg

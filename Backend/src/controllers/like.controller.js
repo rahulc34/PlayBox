@@ -86,7 +86,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { likes: countLike + 1 },
+          { likes: (countLike || 0) + 1 },
           `comment is Liked successfully`
         )
       );
@@ -127,7 +127,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { likes: likeCount + 1 },
+          { likes: likeCount ? 1 : likeCount + 1 },
           `tweet is Liked successfully`
         )
       );
