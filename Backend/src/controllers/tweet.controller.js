@@ -17,15 +17,6 @@ const createTweet = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid userId");
   }
 
-  // check for the duplicate tweet
-  const duplicateTweet = await Tweet.findOne({
-    content: content.trim(),
-    owner,
-  });
-  if (duplicateTweet) {
-    throw new ApiError(400, "Duplicate tweet detected");
-  }
-
   //creating the tweet
   const tweet = await Tweet.create({ content: content.trim(), owner });
   if (!tweet) {
@@ -34,13 +25,7 @@ const createTweet = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { id: tweet._id, content: tweet.content },
-        "tweet created successfully"
-      )
-    );
+    .json(new ApiResponse(200, tweet, "tweet created successfully"));
 });
 
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -57,7 +42,44 @@ const getUserTweets = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
-  const tweets = await Tweet.find({ owner: userId });
+  // const tweets = await Tweet.find({ owner: userId });
+  const tweets = await Tweet.aggregate([
+    { $match: { owner: new mongoose.Types.ObjectId(userId) } },
+    {
+      $sort: { createdAt: -1 },
+    },
+    {
+      $lookup: {
+        from: "likes",
+        as: "likes",
+        localField: "_id",
+        foreignField: "tweet",
+      },
+    },
+    {
+      $addFields: {
+        likedby: {
+          $cond: {
+            if: { $in: [req.user?._id, "$likes.likedBy"] },
+            then: true,
+            else: false,
+          },
+        },
+        likes: {
+          $size: "$likes",
+        },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        content: 1,
+        createdAt: 1,
+        likes: 1,
+        likedby: 1,
+      },
+    },
+  ]);
 
   return res
     .status(200)
@@ -115,9 +137,6 @@ const deleteTweet = asyncHandler(async (req, res) => {
   // validate the id
   if (!isValidObjectId(tweetId)) {
     throw new ApiError(400, "Invalid tweet Id");
-  }
-  if (!isValidObjectId(owner)) {
-    throw new ApiError(400, "Invalid user Id");
   }
 
   // deleting the comment

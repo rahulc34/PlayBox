@@ -149,7 +149,6 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 const getLikedVideos = asyncHandler(async (req, res) => {
   const userId = req?.user?._id;
   //TODO: get all liked videos
-  console.log(userId);
   if (!isValidObjectId(userId)) {
     throw new ApiError("Invalid userId");
   }
@@ -199,8 +198,6 @@ const getLikedVideos = asyncHandler(async (req, res) => {
       $unwind: "$videoList",
     },
   ]);
-
-  console.log(likes);
 
   return res
     .status(200)

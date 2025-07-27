@@ -18,7 +18,7 @@ import CenterDiv from "../components/CenterDiv.jsx";
 
 function Sidebar() {
   const { user, isAuthenticated } = useAuth();
-  const { isVerified } = user;
+  const { isVerified } = user || {};
   const { isToggle, setIsToggle, isToggleBtnShow, setIsToggleBtnShow } =
     useToggle();
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { axiosPrivate } from "../api/axios";
 import { useState } from "react";
-import dislikelogo from "../assests/liked.png";
+import dislikelogo from "../assests/thumb.png";
 import likelogo from "../assests/like.png";
 
 const LikeBtn = ({ video, setVideo }) => {

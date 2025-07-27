@@ -106,6 +106,20 @@ function RootLayout() {
             </>
           )}
         </ul>
+        <input
+          type="text"
+          placeholder="Search..."
+          className="inputsearchSmallDevice"
+          style={{
+            width: "80%",
+            margin: "0 10%",
+            border: "0px",
+            padding: "4px 10px",
+            marginBottom: "4px",
+            fontSize: "1.2rem",
+            borderRadius: "8px",
+          }}
+        />
       </header>
       <main>
         <Outlet />

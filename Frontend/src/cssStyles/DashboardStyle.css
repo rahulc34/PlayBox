@@ -90,12 +90,12 @@ tr .private {
   color: rgb(202, 9, 9);
 }
 
-.editbtn button {
+/* .editbtn button {
   height: 20px;
   width: 20px;
   background-color: inherit;
   border: none;
-}
+} */
 
 .container {
   display: flex;

@@ -8,6 +8,7 @@ import Model from "../model/Model.jsx";
 import CreatePlaylist from "../model/CreatePlaylist.jsx";
 import { DeletePlaylist } from "../model/deletePlaylist.jsx";
 import CenterDiv from "./CenterDiv.jsx";
+import deleteIcon from "../assests/delete.png";
 
 function PlaylistCard({ userId }) {
   const { user } = useAuth();
@@ -73,7 +74,14 @@ function PlaylistCard({ userId }) {
                       <p className="count">{totalVideos} videos</p>
                       <p className="description">{description}</p>
                       {userId === user._id && (
-                        <button className="editBtn" id="deleteBtn">
+                        <button
+                          className="editBtn"
+                          id="deleteBtn"
+                          style={{
+                            borderRadius: "8px",
+                            boxShadow: "0 0 3px black",
+                          }}
+                        >
                           Delete
                         </button>
                       )}

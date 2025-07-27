@@ -34,8 +34,6 @@ const registerUser = asyncHandler(async (req, res) => {
   // remove passoword, refreshToken field from response
   // send response
   const { fullname, username, email, password } = req.body;
-
-  console.log("registering user -->", username, email, password, fullname);
   // -- checking if fields are empty or not
   if (
     [fullname, email, username, password].some((field) => field?.trim() === "")
@@ -78,7 +76,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Something went wrong while registering the user");
   }
 
-  console.log("resistered user", username);
   return res
     .status(201)
     .json(new ApiResponse(200, createdUser, "User Registered successfully!!"));
@@ -94,7 +91,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
   //Retrieve the email and password from the request body
   const { email, password } = req.body;
-  console.log("body-->", req.body);
   //Ensure both email and password are provided and not empty.
   if (!password?.trim() || !email?.trim()) {
     throw new ApiError(400, "email or password is required");
@@ -132,7 +128,6 @@ const loginUser = asyncHandler(async (req, res) => {
     secure: true,
   };
 
-  console.log("user is logged in successfully-->");
   return res
     .status(200)
     .cookie("accessToken", accessToken, options)
@@ -153,8 +148,6 @@ const loginUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   const user = req.user._id;
 
-  console.log("logout controller -->", user._id);
-
   await User.findOneAndUpdate(
     req.user?._id,
     {
@@ -166,8 +159,6 @@ const logoutUser = asyncHandler(async (req, res) => {
       new: true,
     }
   );
-
-  console.log("logout the user from database");
 
   const options = {
     httpOnly: true,
@@ -183,16 +174,13 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken || req.body.refreshToken;
-  console.log("refreshing the token --> ", token);
   if (!token) {
     throw new ApiError(401, "unauthorized request");
   }
 
   try {
-    console.log("verifying the token-----");
     const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 
-    console.log("decoded the token ----", decoded);
     const user = await User.findById(decoded?._id);
 
     if (!user) {
@@ -224,7 +212,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       }
     );
 
-    console.log("done refreshing the new token");
     return res
       .status(201)
       .cookie("accessToken", accessToken, options)
@@ -246,7 +233,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 const forgetPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  console.log("sending the reset pass link-> ", email);
   if (!isEmailValid(email)) {
     throw new ApiError(400, "Email is not valid");
   }
@@ -260,8 +246,6 @@ const forgetPassword = asyncHandler(async (req, res) => {
   const { resetPasswordExpiry } = user;
   const id = user._id;
   const remainingTime = resetPasswordExpiry - Date.now();
-  console.log(resetPasswordExpiry);
-  console.log(Date.now());
   if (resetPasswordExpiry && remainingTime > 0) {
     throw new ApiError(
       400,
@@ -279,17 +263,14 @@ const forgetPassword = asyncHandler(async (req, res) => {
     subject: "Reset Password link",
     text: `Reset your password : http://localhost:5173/resetPassword/${id}/${token} . Don't share this link with other people.`,
   };
-  console.log("sending the email...");
   transporter.sendMail(mailOptions, async (error, info) => {
     if (error) {
-      console.error("Error occured: ", error);
       return res
         .status(500)
         .json(
           new ApiError(500, "Error in sending email. Please try again later.")
         );
     } else {
-      console.log("Email sent:");
       user.resetPasswordExpiry = Date.now() + 5 * 60 * 1000;
       await user.save();
       return res
@@ -300,10 +281,8 @@ const forgetPassword = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  console.log(req.params);
   const { id, token } = req.params;
   const { newPassword } = req.body;
-  console.log(newPassword);
   if (
     !newPassword ||
     typeof newPassword !== "string" ||
@@ -375,14 +354,12 @@ const sendEmailVerify = asyncHandler(async (req, res) => {
 
   transporter.sendMail(mailOptions, async (error, info) => {
     if (error) {
-      console.error("Error occured: ", error);
       return res
         .status(500)
         .json(
           new ApiError(500, "Error in sending email. Please try again later.")
         );
     } else {
-      console.log("Email sent:");
       user.verifyEmailExpiry = new Date(time);
       await user.save();
       return res
@@ -395,7 +372,6 @@ const sendEmailVerify = asyncHandler(async (req, res) => {
 const verifyEmail = asyncHandler(async (req, res) => {
   const { token, id } = req.params;
 
-  console.log("verify email ", id, token);
   const user = await User.findById(id);
   if (!user) {
     throw new ApiError(400, "Invalid user token");
@@ -420,14 +396,12 @@ const verifyEmail = asyncHandler(async (req, res) => {
   user.isVerified = true;
   user.save();
 
-  console.log("email is verified");
   return res
     .status(200)
     .json(new ApiResponse(200, { success: true }, "Otp is verified"));
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-  console.log("current user --> ", req.user?.username);
   return res
     .status(200)
     .json(
@@ -450,7 +424,6 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     { new: true }
   ).select("-password");
 
-  console.log("modefied user ", user);
   return res
     .status(200)
     .json(new ApiResponse(200, user, "Account details updated successfully"));
@@ -459,7 +432,6 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
 
-  console.log("req file --> ", req.file);
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is missing");
   }
@@ -487,16 +459,12 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
   const coverImageLocalPath = req.file?.path;
-  console.log("update cover image");
-  console.log(req.file);
   if (!coverImageLocalPath) {
     throw new ApiError(400, "coverImage file is missing");
   }
 
-  console.log("uploading the image");
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-  console.log("uploaded");
   if (!coverImage.url) {
     throw new ApiError(400, "Error while uploadind on avatar");
   }
@@ -522,8 +490,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   if (!username?.trim()) {
     throw new ApiError(400, "username is missing");
   }
-
-  console.log("displaying the channel profile of ", username);
 
   const channel = await User.aggregate([
     {
@@ -588,8 +554,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 const getWatchHistory = asyncHandler(async (req, res) => {
-  console.log("user watch history -> ", req.user?._id, req.user?.username);
-
   const user = await User.aggregate([
     {
       $match: {

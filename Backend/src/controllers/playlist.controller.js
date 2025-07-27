@@ -7,7 +7,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createPlaylist = asyncHandler(async (req, res) => {
   const { name, description, isPrivate } = req.body;
-  console.log(name, description, isPrivate);
   const owner = req.user._id.toString();
   //TODO: create playlist
   // check is name is valid
@@ -87,7 +86,6 @@ const getPlaylistById = asyncHandler(async (req, res) => {
   // find the playlist in db
   // check if playlist owner is user
   // return response
-  console.log("gettng playlistbyid-->", playlistId);
 
   if (!isValidObjectId(playlistId)) {
     throw new ApiError(400, "invalid playlist ID");
@@ -171,7 +169,6 @@ const getPlaylistById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Playlist not found");
   }
 
-  console.log("got-->", playlist);
   return res
     .status(200)
     .json(
@@ -230,7 +227,6 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
   const { playlistId, videoId } = req.params;
-  console.log(playlistId, videoId);
   const owner = req.user._id;
   // TODO: remove video from playlist
   // check if id are the valid object id
@@ -312,7 +308,6 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   if (!playlist) {
     throw new ApiError(404, "Playlist not found or unauthorized access");
   }
-  console.log(playlist);
 
   playlist.name = name;
   playlist.description = description;

@@ -32,7 +32,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
     query,
   } = req.query;
 
-  console.log(req.query);
   const filter = {};
   // filter on getting all video of user ---> request by any user to see his or others videos account
   if (userId) {
@@ -171,8 +170,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description, isPublished } = req.body;
   const user = req.user;
-  console.log(req.body);
-  console.log(req.files);
   // TODO: get video, upload to cloudinary, create video
   //get the title and description from the req body
   //get the video and thumbnail file path from req.files
@@ -189,12 +186,10 @@ const publishAVideo = asyncHandler(async (req, res) => {
       `${!videoFilepath ? "videoFile" : "thumbnail"} is missing`
     );
   }
-  console.log("path-->", videoFilepath, thumbnailpath);
 
   const videoFile = await uploadOnCloudinary(videoFilepath);
   const thumbnail = await uploadOnCloudinary(thumbnailpath);
 
-  console.log("url-->", videoFile?.url, thumbnail?.url);
   if (!videoFile) {
     throw new ApiError(500, "failed to upload the video");
   }
@@ -214,7 +209,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(500, "something went wront while creating video schema");
   }
-  console.log("created video schema --> ", video);
 
   return res
     .status(201)
@@ -303,15 +297,9 @@ const getVideoById = asyncHandler(async (req, res) => {
     videos: new mongoose.Types.ObjectId(videoId),
   });
 
-  console.log(userId, videoId);
-  console.log("skjdfh");
-  console.log(alreadySaved);
-
   if (alreadySaved) {
     video[0].PlaylistId = alreadySaved._id;
   }
-
-  console.log(video);
 
   return res
     .status(201)
@@ -345,13 +333,9 @@ const updateVideo = asyncHandler(async (req, res) => {
   const thumbnailpath = req.file?.path;
   const thumbnailPublicId = video.thumbnail?.split("/")?.pop()?.split(".")?.[0];
 
-  console.log(title, description, isPublished, thumbnailpath);
-
   let updatedVideo;
   if (thumbnailpath) {
-    console.log("uploding new thumbnail......");
     const respose = await uploadOnCloudinary(thumbnailpath);
-    console.log("deleting old thumbnail......");
     await deleteFromCloudinary(thumbnailPublicId, "image");
     const thumbnail = respose.url;
 
@@ -489,7 +473,6 @@ const increaseLikeAndSaveToHistory = asyncHandler(async (req, res) => {
 
   await video.save();
   await user.save();
-  console.log(video, user);
 
   return res.status(200).json(new ApiResponse(200, null, "views increased"));
 });

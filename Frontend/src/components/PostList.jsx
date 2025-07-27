@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { axiosPrivate } from "../api/axios";
 import { useAuth } from "../contexts/AuthContext";
-import UserHeader from "./UserHeader";
 import EmptyPage from "./EmptyPage";
+import CenterDiv from "./CenterDiv.jsx";
+import PostCreate from "./PostCreate.jsx";
+import deleteIcon from "../assests/delete.png";
+import dislikelogo from "../assests/thumb.png";
+import likelogo from "../assests/like.png";
 
 function PostList({ userId }) {
   const [posts, setposts] = useState("");
@@ -25,28 +29,80 @@ function PostList({ userId }) {
     getAllPost();
   }, []);
 
+  const createPost = async (content) => {
+    if (!content?.trim()) return;
+    try {
+      const response = await axiosPrivate.post("/api/v1/tweets", { content });
+      console.log(response);
+      if (response.data.success) {
+        const tweet = response.data.data;
+        setposts((prev) => [{ ...tweet, likes: 0, likedby: false }, ...prev]);
+      }
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deleteTweet = async (tweetId) => {
+    try {
+      const response = await axiosPrivate.delete(`/api/v1/tweets/${tweetId}`);
+      if (response.data.success) {
+        // setposts((prev) => {
+        //   return prev.filter((tweet) => (tweet._id !== tweetId ? tweet));
+        // });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
-      {userId === user._id && <UserHeader title="Post" count={posts.length} />}
+      {userId === user._id && (
+        <div className="playlist-header">
+          <p className="name">{posts.length} Post</p>
+        </div>
+      )}
+      {userId === user._id && <PostCreate submitHandler={createPost} />}
       <div className="plylistwrapper">
         {posts &&
-          posts.map(({ owner, content, _id, createdAt }) => {
+          posts.map(({ owner, content, _id, createdAt, likedby, likes }) => {
+            const likeBtnUrl = likedby ? likelogo : dislikelogo;
             return (
               <div key={_id} className="playlistcontain">
+                <p style={{ fontSize: "0.8rem", fontWeight: "700" }}>
+                  {new Date(createdAt).toLocaleDateString()}
+                  {"  "}
+                  {new Date(createdAt).toLocaleTimeString()}
+                </p>
                 <div className="playlist-content">
-                  <p className="description">{content}</p>
+                  <p className="description" style={{ fontSize: "1rem" }}>
+                    {content}
+                  </p>
                   {userId === user._id && (
-                    <button className="editBtn">Edit</button>
+                    <button
+                      className="editBtn"
+                      onClick={() => deleteTweet(_id)}
+                    >
+                      <img src={deleteIcon} alt="delete" width="19px" />
+                    </button>
                   )}
+                  <button className="like" onClick={() => {}}>
+                    <p>{likes || 0}</p>
+                    <img src={likeBtnUrl} />
+                  </button>
                 </div>
               </div>
             );
           })}
         {!posts.length && (
-          <EmptyPage
-            title="No Posts Found"
-            desc="This channel yet have to make post"
-          />
+          <CenterDiv>
+            <EmptyPage
+              title="No Posts Found"
+              desc="This channel yet have to make post"
+            />
+          </CenterDiv>
         )}
       </div>
     </>
