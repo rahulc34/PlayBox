@@ -5,6 +5,7 @@ import {
   getVideoComments,
   updateComment,
   addReplyToComment,
+  getAllReplies,
 } from "../controllers/comment.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -15,6 +16,7 @@ router.use(verifiedEmail); // Apply verifyJWT middleware to all routes in this f
 
 router.route("/:videoId").get(getVideoComments).post(addComment);
 router.route("/:videoId/:commentId").post(addReplyToComment);
+router.route("/c/:commentId").get(getAllReplies);
 router.route("/c/:commentId").delete(deleteComment).patch(updateComment);
 
 export default router;

@@ -5,17 +5,38 @@ import dislikelogo from "../assests/thumb.png";
 import likelogo from "../assests/like.png";
 import deleteIcon from "../assests/delete.png";
 import { useAuth } from "../contexts/AuthContext";
+import showMoreIcon from "../assests/down-chevron.png";
+import closeShowIcon from "../assests/up-chevron.png";
+import CommentReply from "./CommentReply";
+import Pagination from "./Pagination";
 
 function CommentList({ videoId }) {
   const { user } = useAuth();
   const [comment, setComment] = useState([]);
-  const [replyShow, setReplyShow] = useState(false);
+  const [replyBox, setReplyBox] = useState(null);
+  const [replyShow, setShowReply] = useState(false);
+  const [replyShowIds, setReplyShowIds] = useState([]);
+
+  const [page, setPage] = useState(0);
+  const [totalPage, setTotalPage] = useState(0);
+
+  const toggleReplyVisibility = (commentId) => {
+    setReplyShowIds((prev) =>
+      prev.includes(commentId)
+        ? prev.filter((id) => id !== commentId)
+        : [...prev, commentId]
+    );
+  };
 
   const getComment = async () => {
     try {
       const response = await axiosPrivate.get(`/api/v1/comments/${videoId}`);
       const data = response.data;
       if (data.success) {
+        const { page, total } = data.data;
+        console.log(page, total);
+        setPage(page);
+        setTotalPage(total / 10 + (total % 10 !== 0 ? 1 : 0));
         setComment(data.data?.comments);
       }
     } catch (error) {
@@ -87,15 +108,25 @@ function CommentList({ videoId }) {
     }
   };
 
-  const replyHandler = async (content) => {
+  const replyHandler = async (content, setReply) => {
     try {
       const response = await axiosPrivate.post(
-        `/api/v1/comments/${videoId}/${replyShow}`,
+        `/api/v1/comments/${videoId}/${replyBox}`,
         {
           content,
         }
       );
-      console.log(response);
+      if (response.data.success) {
+        if (setReply) {
+          console.log("hello");
+        }
+        console.log("hello");
+        setComment((prev) =>
+          prev.filter((com) =>
+            com._id === replyShow ? { ...com, reply: com.reply + 1 } : com
+          )
+        );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -108,6 +139,17 @@ function CommentList({ videoId }) {
   return (
     <div>
       <PostCreate submitHandler={createComment} />
+      {comment && comment.length && (
+        <div>
+          <Pagination
+            page={page}
+            totalPage={totalPage}
+            setPage={setPage}
+            setTotalPage={setTotalPage}
+          />
+        </div>
+      )}
+
       {comment &&
         comment.length &&
         comment.map(
@@ -125,14 +167,14 @@ function CommentList({ videoId }) {
             const likeBtnUrl = likedby ? likelogo : dislikelogo;
 
             return (
-              <div style={{ display: "flex", margin: "18px 0" }}>
-                <img
-                  src={avatar}
-                  alt="sdf"
-                  width="45px"
-                  height="45px"
-                  style={{ borderRadius: "50%", margin: "10px" }}
-                />
+              <div style={{ display: "flex", margin: "18px 0" }} key={_id}>
+                <div
+                  className="profile-container"
+                  style={{ boxShadow: "none", margin: "10px" }}
+                >
+                  <img src={avatar} alt="sdf" className="profile" />
+                </div>
+
                 <div>
                   <div
                     style={{
@@ -187,7 +229,7 @@ function CommentList({ videoId }) {
                           fontSize: "0.8rem",
                         }}
                         onClick={() => {
-                          setReplyShow((prev) => (prev === _id ? "" : _id));
+                          setReplyBox((prev) => (prev === _id ? "" : _id));
                         }}
                       >
                         reply
@@ -195,11 +237,11 @@ function CommentList({ videoId }) {
                     </div>
                     <div
                       style={{
-                        display: replyShow === _id ? "block" : "none",
+                        display: replyBox === _id ? "block" : "none",
                         margin: "10px",
                       }}
                     >
-                      <PostCreate submitHandler={() => replyHandler(content)} />
+                      <PostCreate submitHandler={replyHandler} />
                     </div>
                     <button
                       style={{
@@ -212,9 +254,35 @@ function CommentList({ videoId }) {
                         fontSize: "0.9rem",
                       }}
                     >
-                      {reply} reply
+                      {reply} reply{" "}
                     </button>
+                    {reply ? (
+                      <img
+                        src={
+                          replyShowIds.includes(_id)
+                            ? closeShowIcon
+                            : showMoreIcon
+                        }
+                        alt=""
+                        width="14px"
+                        style={{ marginLeft: "10px", cursor: "pointer" }}
+                        onClick={() => {
+                          console.log("clicked");
+                          toggleReplyVisibility(_id);
+                        }}
+                      />
+                    ) : (
+                      ""
+                    )}
                   </div>
+                  {replyShowIds.includes(_id) && (
+                    <CommentReply
+                      commentId={_id}
+                      setReplyBox={setReplyBox}
+                      deleteComment={deleteComment}
+                      toggleCommentLike={toggleCommentLike}
+                    />
+                  )}
                 </div>
               </div>
             );
