@@ -6,22 +6,23 @@ import dislikelogo from "../assests/thumb.png";
 import likelogo from "../assests/like.png";
 import deleteIcon from "../assests/delete.png";
 import { useAuth } from "../contexts/AuthContext";
+import PostCreate from "./PostCreate";
 
-function CommentReply({ commentId, setReplyBox }) {
+function CommentReply({ commentId, setComment, videoId }) {
   const { user } = useAuth();
   const [reply, setReply] = useState([]);
 
-  const toggleCommentLike = async (commentId) => {
+  const toggleCommentLike = async (replyId) => {
     try {
       const response = await axiosPrivate.post(
-        `/api/v1/likes/toggle/c/${commentId}`
+        `/api/v1/likes/toggle/c/${replyId}`
       );
       console.log(response);
       if (response.data.success) {
         const { likes } = response.data.data || {};
         setReply((prev) =>
           prev.map((comment) => {
-            if (comment._id === commentId) {
+            if (comment._id === replyId) {
               const likedby = comment.likedby;
               const newcomment = { ...comment, likedby: !likedby, likes };
               return newcomment;
@@ -34,14 +35,14 @@ function CommentReply({ commentId, setReplyBox }) {
     }
   };
 
-  const deleteComment = async (commentId) => {
+  const deleteComment = async (replyId) => {
     try {
       const response = await axiosPrivate.delete(
-        `/api/v1/comments/c/${commentId}`
+        `/api/v1/comments/c/${replyId}`
       );
 
       if (response.data.success) {
-        setReply((prev) => prev.filter((com) => com._id !== commentId));
+        setReply((prev) => prev.filter((com) => com._id !== replyId));
       }
     } catch (error) {
       console.log(error);
@@ -49,12 +50,37 @@ function CommentReply({ commentId, setReplyBox }) {
   };
 
   const getReply = async () => {
-    const respone = await axiosPrivate.get(`/api/v1/comments/c/${commentId}`);
-    if (respone.data.success) {
-      console.log(respone.data.data);
-      setReply(respone.data.data.comments);
-    }
     try {
+      const respone = await axiosPrivate.get(`/api/v1/comments/c/${commentId}`);
+      if (respone.data.success) {
+        setReply(respone.data.data?.comments || []);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const replyHandler = async (content) => {
+    try {
+      const response = await axiosPrivate.post(
+        `/api/v1/comments/${videoId}/${commentId}`,
+        {
+          content,
+        }
+      );
+      if (response.data.success) {
+        const newReply = response.data.data;
+        const { username, avatar } = user;
+        setReply([
+          { ...newReply, likes: 0, likedby: false, username, avatar },
+          ...reply,
+        ]);
+        setComment((prev) =>
+          prev.filter((com) =>
+            com._id === commentId ? { ...com, reply: com.reply + 1 } : com
+          )
+        );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -62,19 +88,24 @@ function CommentReply({ commentId, setReplyBox }) {
 
   useEffect(() => {
     getReply();
-  }, []);
+  }, [commentId]);
 
   return (
     <div>
-      {reply &&
-        reply.length &&
+      <div
+        style={{
+          margin: "10px",
+        }}
+      >
+        <PostCreate submitHandler={replyHandler} />
+      </div>
+      {reply?.length > 0 &&
         reply.map(
           ({
             _id,
             avatar,
             content,
             createdAt,
-            reply,
             username,
             likedby,
             likes,
@@ -138,20 +169,6 @@ function CommentReply({ commentId, setReplyBox }) {
                           <img src={deleteIcon} alt="" width="17px" />
                         </button>
                       )}
-                      <button
-                        style={{
-                          border: "none",
-                          backgroundColor: "inherit",
-                          fontSize: "0.8rem",
-                        }}
-                        onClick={() => {
-                          setReplyBox((prev) =>
-                            prev === commentId ? "" : commentId
-                          );
-                        }}
-                      >
-                        reply
-                      </button>
                     </div>
                   </div>
                 </div>

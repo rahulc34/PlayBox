@@ -4,6 +4,7 @@ import { axiosPrivate } from "../api/axios";
 import dislikelogo from "../assests/thumb.png";
 import likelogo from "../assests/like.png";
 import deleteIcon from "../assests/delete.png";
+import revealComment from "../assests/revealComment.png";
 import { useAuth } from "../contexts/AuthContext";
 import showMoreIcon from "../assests/down-chevron.png";
 import closeShowIcon from "../assests/up-chevron.png";
@@ -13,12 +14,11 @@ import Pagination from "./Pagination";
 function CommentList({ videoId }) {
   const { user } = useAuth();
   const [comment, setComment] = useState([]);
-  const [replyBox, setReplyBox] = useState(null);
-  const [replyShow, setShowReply] = useState(false);
   const [replyShowIds, setReplyShowIds] = useState([]);
 
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
+  const [showComment, setShowComment] = useState(false);
 
   const toggleReplyVisibility = (commentId) => {
     setReplyShowIds((prev) =>
@@ -30,7 +30,9 @@ function CommentList({ videoId }) {
 
   const getComment = async () => {
     try {
-      const response = await axiosPrivate.get(`/api/v1/comments/${videoId}`);
+      const response = await axiosPrivate.get(
+        `/api/v1/comments/${videoId}?page=${page}`
+      );
       const data = response.data;
       if (data.success) {
         const { page, total } = data.data;
@@ -108,155 +110,130 @@ function CommentList({ videoId }) {
     }
   };
 
-  const replyHandler = async (content, setReply) => {
-    try {
-      const response = await axiosPrivate.post(
-        `/api/v1/comments/${videoId}/${replyBox}`,
-        {
-          content,
-        }
-      );
-      if (response.data.success) {
-        if (setReply) {
-          console.log("hello");
-        }
-        console.log("hello");
-        setComment((prev) =>
-          prev.filter((com) =>
-            com._id === replyShow ? { ...com, reply: com.reply + 1 } : com
-          )
-        );
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-    console.log("componenet get commment");
     getComment();
-  }, [videoId]);
+  }, [videoId, page]);
+
   return (
     <div>
       <PostCreate submitHandler={createComment} />
-      {comment && comment.length && (
-        <div>
-          <Pagination
-            page={page}
-            totalPage={totalPage}
-            setPage={setPage}
-            setTotalPage={setTotalPage}
-          />
-        </div>
-      )}
+      <button
+        onClick={() => setShowComment((prev) => !prev)}
+        style={{
+          border: "none",
+          backgroundColor: "inherit",
+          margin: "20px",
+          borderBottom: "1px solid black",
+        }}
+      >
+        <img src={revealComment} alt="" width="24px" />
+        <p>comments</p>
+      </button>
+      <div
+        style={{
+          display: showComment ? "block" : "none",
+          transition: "all 0.2s ease",
+        }}
+      >
+        {comment && comment.length && (
+          <div>
+            <Pagination
+              page={page}
+              totalPage={totalPage}
+              setPage={setPage}
+              setTotalPage={setTotalPage}
+            />
+          </div>
+        )}
 
-      {comment &&
-        comment.length &&
-        comment.map(
-          ({
-            _id,
-            avatar,
-            content,
-            createdAt,
-            reply,
-            username,
-            likedby,
-            likes,
-            owner,
-          }) => {
-            const likeBtnUrl = likedby ? likelogo : dislikelogo;
+        {comment &&
+          comment.length &&
+          comment.map(
+            ({
+              _id,
+              avatar,
+              content,
+              createdAt,
+              reply,
+              username,
+              likedby,
+              likes,
+              owner,
+            }) => {
+              const likeBtnUrl = likedby ? likelogo : dislikelogo;
 
-            return (
-              <div style={{ display: "flex", margin: "18px 0" }} key={_id}>
-                <div
-                  className="profile-container"
-                  style={{ boxShadow: "none", margin: "10px" }}
-                >
-                  <img src={avatar} alt="sdf" className="profile" />
-                </div>
-
-                <div>
+              return (
+                <div style={{ display: "flex", margin: "18px 0" }} key={_id}>
                   <div
-                    style={{
-                      display: "flex",
-                      fontSize: "0.8rem",
-                      fontWeight: "700",
-                    }}
+                    className="profile-container"
+                    style={{ boxShadow: "none", margin: "10px" }}
                   >
-                    <p>{username}</p>
-                    <p style={{ padding: "0 8px", fontSize: "0.7rem" }}>
-                      {new Date(createdAt).toLocaleDateString()}
-                    </p>
+                    <img src={avatar} alt="sdf" className="profile" />
                   </div>
-                  <div>
-                    <p>{content}</p>
-                  </div>
+
                   <div>
                     <div
                       style={{
                         display: "flex",
-                        gap: "10px",
-                        alignItems: "center",
+                        fontSize: "0.8rem",
+                        fontWeight: "700",
                       }}
                     >
-                      <img
-                        src={likeBtnUrl}
-                        alt="like"
-                        width="20px"
-                        onClick={() => {
-                          toggleCommentLike(_id);
-                        }}
-                      />
-                      <p>{likes || 0}</p>
-                      {user._id === owner && (
-                        <button
-                          style={{
-                            border: "none",
-                            backgroundColor: "inherit",
-                            marginTop: "4px",
-                          }}
-                          onClick={() => {
-                            deleteComment(_id);
-                          }}
-                        >
-                          <img src={deleteIcon} alt="" width="17px" />
-                        </button>
-                      )}
-                      <button
+                      <p>{username}</p>
+                      <p style={{ padding: "0 8px", fontSize: "0.7rem" }}>
+                        {new Date(createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p>{content}</p>
+                    </div>
+                    <div>
+                      <div
                         style={{
-                          border: "none",
-                          backgroundColor: "inherit",
-                          fontSize: "0.8rem",
-                        }}
-                        onClick={() => {
-                          setReplyBox((prev) => (prev === _id ? "" : _id));
+                          display: "flex",
+                          gap: "10px",
+                          alignItems: "center",
                         }}
                       >
-                        reply
+                        <img
+                          src={likeBtnUrl}
+                          alt="like"
+                          width="20px"
+                          onClick={() => {
+                            toggleCommentLike(_id);
+                          }}
+                        />
+                        <p>{likes || 0}</p>
+                        {user._id === owner && (
+                          <button
+                            style={{
+                              border: "none",
+                              backgroundColor: "inherit",
+                              marginTop: "4px",
+                            }}
+                            onClick={() => {
+                              deleteComment(_id);
+                            }}
+                          >
+                            <img src={deleteIcon} alt="" width="17px" />
+                          </button>
+                        )}
+                      </div>
+
+                      <button
+                        style={{
+                          border: "0",
+                          borderRadius: "10px",
+                          padding: "4px 8px",
+                          marginTop: "8px",
+                          backgroundColor: "blue",
+                          color: "white",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        {reply} reply{" "}
                       </button>
-                    </div>
-                    <div
-                      style={{
-                        display: replyBox === _id ? "block" : "none",
-                        margin: "10px",
-                      }}
-                    >
-                      <PostCreate submitHandler={replyHandler} />
-                    </div>
-                    <button
-                      style={{
-                        border: "0",
-                        borderRadius: "10px",
-                        padding: "4px 8px",
-                        marginTop: "8px",
-                        backgroundColor: "blue",
-                        color: "white",
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      {reply} reply{" "}
-                    </button>
-                    {reply ? (
+
                       <img
                         src={
                           replyShowIds.includes(_id)
@@ -267,27 +244,23 @@ function CommentList({ videoId }) {
                         width="14px"
                         style={{ marginLeft: "10px", cursor: "pointer" }}
                         onClick={() => {
-                          console.log("clicked");
                           toggleReplyVisibility(_id);
                         }}
                       />
-                    ) : (
-                      ""
+                    </div>
+                    {replyShowIds.includes(_id) && (
+                      <CommentReply
+                        commentId={_id}
+                        setComment={setComment}
+                        videoId={videoId}
+                      />
                     )}
                   </div>
-                  {replyShowIds.includes(_id) && (
-                    <CommentReply
-                      commentId={_id}
-                      setReplyBox={setReplyBox}
-                      deleteComment={deleteComment}
-                      toggleCommentLike={toggleCommentLike}
-                    />
-                  )}
                 </div>
-              </div>
-            );
-          }
-        )}
+              );
+            }
+          )}
+      </div>
     </div>
   );
 }
