@@ -17,7 +17,7 @@ import settingIcon from "../assests/setting.png";
 import CenterDiv from "../components/CenterDiv.jsx";
 
 function Sidebar() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading, verifyEmailRes } = useAuth();
   const { isVerified } = user || {};
   const { isToggle, setIsToggle, isToggleBtnShow, setIsToggleBtnShow } =
     useToggle();
@@ -106,7 +106,9 @@ function Sidebar() {
         ) : (
           <CenterDiv>
             <div>
-              <h2>Please verify Email</h2>
+              {loading && <h1>loading...</h1>}
+              {verifyEmailRes && <h2>{verifyEmailRes}</h2>}
+              {!loading && !verifyEmailRes && <h2>Please verify Email</h2>}
             </div>
           </CenterDiv>
         )}

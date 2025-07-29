@@ -9,7 +9,7 @@ import logoutIcon from "../assests/logout.png";
 
 function RootLayout() {
   const toggleRef = useRef();
-  const { user, isVerified, isAuthenticated, logout, sendVerifyLink } =
+  const { user, isVerified, isAuthenticated, logout, sendVerifyLink, loading } =
     useAuth();
   const { isToggle, setIsToggle, isToggleBtnShow } = useToggle();
   const menuBarUrl = isToggle ? closeMenu : openMenu;
@@ -65,7 +65,7 @@ function RootLayout() {
                   <p>{user.username[0].toUpperCase()}</p>
                 </Link>
               </li>
-              {!isVerified && (
+              {!isVerified && !loading && (
                 <li>
                   <form
                     onSubmit={(e) => {

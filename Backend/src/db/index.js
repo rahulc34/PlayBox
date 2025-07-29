@@ -5,9 +5,9 @@ import dotenv from "dotenv";
 dotenv.config();
 const connectDB = async () => {
   try {
-    // const uri = `${process.env.MONGODB_URI}/${DB_NAME}`;
-    const localURI = `${process.env.LOCAL_MONGODB_URI}/${DB_NAME}`;
-    const connectionInstance = await mongoose.connect(localURI);
+    const uri = `${process.env.MONGODB_URI}/${DB_NAME}`;
+    // const localURI = `${process.env.LOCAL_MONGODB_URI}/${DB_NAME}`;
+    const connectionInstance = await mongoose.connect(uri);
 
     console.log(
       `/n Database is connected successfully !! DB Host ${connectionInstance.connection.host}`

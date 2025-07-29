@@ -12,17 +12,24 @@ const AuthProvider = ({ children }) => {
   const [isVerified, setIsVerified] = useState(false);
   const [error, setError] = useState("");
 
+  const [verifyEmailRes, setVerifyEmailRes] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const sendVerifyLink = async () => {
+    setLoading(true);
+    setVerifyEmailRes("");
     try {
       const response = await axiosPrivate.post(
         "/api/v1/users/sendEmail-verify"
       );
-      // console.log(response);
+
       if (response.data.success) {
-        // console.log("link is send to email");
+        setVerifyEmailRes(response.data.message);
       }
+      setLoading(false);
     } catch (error) {
-      // console.log(error);
+      setVerifyEmailRes(error.response.data.message);
+      setLoading(false);
     }
   };
 
@@ -143,6 +150,8 @@ const AuthProvider = ({ children }) => {
         login,
         signup,
         sendVerifyLink,
+        loading,
+        verifyEmailRes,
       }}
     >
       {children}
