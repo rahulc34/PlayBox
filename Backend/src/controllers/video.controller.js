@@ -37,7 +37,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
   // filter on getting all video of user ---> request by any user to see his or others videos account
   if (userId) {
     filter.owner = new mongoose.Types.ObjectId(userId);
-  }
+    if (userId !== req.user._id.toString()) {
+      filter.isPublished = true;
+    }
+  } else filter.isPublished = true;
 
   // filter on query done by any user in search field
   if (query) {
@@ -226,7 +229,11 @@ const getVideoById = asyncHandler(async (req, res) => {
   }
 
   const videoDetail = await Video.findById(videoId);
-  if (!videoDetail.isPublished) {
+
+  if (
+    !videoDetail.isPublished &&
+    userId.toString() !== videoDetail.owner.toString()
+  ) {
     throw new ApiError(400, "video is private");
   }
 

@@ -11,7 +11,7 @@ function ResetPassword() {
 
   const resetPassword = async (e) => {
     e.preventDefault();
-    console.log(id, "  ", token);
+    // console.log(id, "  ", token);
     try {
       const response = await axios.post(
         `/api/v1/users/reset-password/${id}/${token}`,
@@ -20,12 +20,12 @@ function ResetPassword() {
         }
       );
 
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
         navigate("/login");
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 

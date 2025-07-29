@@ -18,13 +18,13 @@ function VerifyEmail() {
           setStatus("success");
           setMessage(data.data.message);
         } else {
-          console.log(response);
+          // console.log(response);
           setStatus("error");
         }
       } catch (error) {
         setStatus("error");
         setMessage(error.response.data.message);
-        console.log(error);
+        // console.log(error);
       }
     };
     verify();

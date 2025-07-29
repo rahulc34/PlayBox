@@ -17,7 +17,7 @@ function CommentList({ videoId }) {
   const [replyShowIds, setReplyShowIds] = useState([]);
 
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(0);
+  const [totalPage, setTotalPage] = useState(1);
   const [showComment, setShowComment] = useState(false);
 
   const toggleReplyVisibility = (commentId) => {
@@ -36,14 +36,11 @@ function CommentList({ videoId }) {
       const data = response.data;
       if (data.success) {
         const { page, total } = data.data;
-        console.log(page, total);
         setPage(page);
         setTotalPage(total / 10 + (total % 10 !== 0 ? 1 : 0));
         setComment(data.data?.comments);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   const toggleCommentLike = async (commentId) => {
@@ -63,9 +60,7 @@ function CommentList({ videoId }) {
           })
         );
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   const createComment = async (content) => {
@@ -89,9 +84,7 @@ function CommentList({ videoId }) {
           ...comment,
         ]);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   const deleteComment = async (commentId) => {
@@ -101,13 +94,9 @@ function CommentList({ videoId }) {
       );
 
       if (response.data.success) {
-        console.log(response);
-        console.log(commentId);
         setComment((prev) => prev.filter((com) => com._id !== commentId));
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -260,6 +249,8 @@ function CommentList({ videoId }) {
               );
             }
           )}
+
+        {!comment && <h2>No comment Found</h2>}
       </div>
     </div>
   );

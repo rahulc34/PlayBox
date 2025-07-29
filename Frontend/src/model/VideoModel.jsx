@@ -28,14 +28,14 @@ function VideoModel({ state, video, setChannelVideo }) {
       description: desc,
       isPublished: isPrivate !== "private",
     };
-    console.log("credentials", credentials);
+    // console.log("credentials", credentials);
     for (let key in credentials) {
       formData.append(key, credentials[key]);
     }
     try {
       setLoading(true);
       setOnSuccess(false);
-      console.log("sending ....");
+      // console.log("sending ....");
       const response = await axiosPrivate.patch(
         `/api/v1/videos/${video._id}`,
         formData,
@@ -56,7 +56,7 @@ function VideoModel({ state, video, setChannelVideo }) {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
       setIsError(error.response?.data?.message);
     }
@@ -92,7 +92,7 @@ function VideoModel({ state, video, setChannelVideo }) {
           setProgressBar(percent);
         },
       });
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
         setOnSuccess(response.data.message);
         const data = response.data.data;
@@ -100,7 +100,7 @@ function VideoModel({ state, video, setChannelVideo }) {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
       setIsError(error.response?.data?.message);
     }
@@ -180,7 +180,7 @@ function VideoModel({ state, video, setChannelVideo }) {
               onChange={(e) => {
                 setIsError("");
                 const { size, type, name } = e.target.files[0];
-                console.log(size, type, name);
+                // console.log(size, type, name);
                 thumbnailFileHandler(e);
               }}
               // style={{ border: "1px solid " }}

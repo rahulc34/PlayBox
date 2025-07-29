@@ -17,17 +17,17 @@ const AuthProvider = ({ children }) => {
       const response = await axiosPrivate.post(
         "/api/v1/users/sendEmail-verify"
       );
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
-        console.log("link is send to email");
+        // console.log("link is send to email");
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
   const signup = async (credentials, navigate) => {
-    console.log("signup -> ", credentials);
+    // console.log("signup -> ", credentials);
     try {
       const response = await axios.post(
         "/api/v1/users/register",
@@ -40,18 +40,18 @@ const AuthProvider = ({ children }) => {
       );
       const data = response.data;
       if (data.success) {
-        console.log("sign in successfully");
+        // console.log("sign in successfully");
         navigate("/login");
       } else {
-        console.log("error while signin", data.message);
+        // console.log("error while signin", data.message);
       }
     } catch (error) {
-      console.log("error --> ", error);
+      // console.log("error --> ", error);
     }
   };
 
   const login = async ({ credentials }, navigate) => {
-    console.log("logging ->", credentials);
+    // console.log("logging ->", credentials);
     setError("");
     try {
       const response = await axios.post("/api/v1/users/login", credentials);

@@ -18,11 +18,11 @@ const uploadOnCloudinary = async (localFilePath) => {
       resource_type: "auto",
     });
 
-    console.log("file is uploaded sucessfully on cloudinary : ", response.url);
+    // console.log("file is uploaded sucessfully on cloudinary : ", response.url);
     fs.unlinkSync(localFilePath);
     return response;
   } catch (err) {
-    console.log("Error uploading file to Cloudinary: ", err);
+    // console.log("Error uploading file to Cloudinary: ", err);
     fs.unlinkSync(localFilePath); // Delete the local file if upload fails
     return null;
   }
@@ -30,26 +30,26 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 const deleteFromCloudinary = async (publicId, resouceType) => {
   try {
-    console.log("Deleting from Cloudinary: ", publicId);
+    // console.log("Deleting from Cloudinary: ", publicId);
     const response = await cloudinary.uploader.destroy(publicId, {
       resource_type: resouceType,
       invalidate: true,
     });
 
     if (response?.result === "not found") {
-      console.log("File not found on Cloudinary: ", publicId);
+      // console.log("File not found on Cloudinary: ", publicId);
       return "not found";
     }
 
     if (response?.result === "ok") {
-      console.log("File successfully deleted from Cloudinary: ", publicId);
+      // console.log("File successfully deleted from Cloudinary: ", publicId);
       return "deleted";
     }
 
-    console.log("Unexpected response from Cloudinary: ", response);
+    // console.log("Unexpected response from Cloudinary: ", response);
     return "error";
   } catch (error) {
-    console.error("Error while deleting the file from Cloudinary: ", error);
+    // console.error("Error while deleting the file from Cloudinary: ", error);
     throw new ApiError(500, "Failed to delete file from Cloudinary");
   }
 };

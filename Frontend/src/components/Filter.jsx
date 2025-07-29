@@ -20,7 +20,7 @@ function Filter({ setUploadDate, setDuration, setShortBy, getVideos }) {
         </button>
         <div className={"filterWrapper" + (showFilter ? " disablefilter" : "")}>
           <div>
-            <label for="type">TYPE</label>
+            <label htmlFor="type">TYPE</label>
             <select name="" id="type">
               <option value="video">Video</option>
               {/* <option value="channel">Channel</option>
@@ -29,7 +29,7 @@ function Filter({ setUploadDate, setDuration, setShortBy, getVideos }) {
           </div>
           <div>
             <label
-              for="uploadDate"
+              htmlFor="uploadDate"
               onClick={(e) => {
                 setUploadDate(e.target.value);
               }}
@@ -51,7 +51,7 @@ function Filter({ setUploadDate, setDuration, setShortBy, getVideos }) {
             </select>
           </div>
           <div>
-            <label for="shortBy">SHORT BY</label>
+            <label htmlFor="shortBy">SHORT BY</label>
             <select
               id="shortBy"
               onChange={(e) => {
@@ -63,7 +63,7 @@ function Filter({ setUploadDate, setDuration, setShortBy, getVideos }) {
             </select>
           </div>
           <div>
-            <label for="duration">Duration</label>
+            <label htmlFor="duration">Duration</label>
             <select
               name=""
               id="duration"

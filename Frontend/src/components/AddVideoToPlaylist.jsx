@@ -7,12 +7,7 @@ import CreatePlaylist from "../model/CreatePlaylist.jsx";
 import Model from "../model/Model.jsx";
 import Error from "./Error.jsx";
 
-function AddVideoToPlaylist({
-  isSaved,
-  setIsClosePlaylistAdd,
-  videoId,
-  setIsSaved,
-}) {
+function AddVideoToPlaylist({ videoId, setIsSaved }) {
   const { user } = useAuth();
   const [playlistId, setPlaylistId] = useState("");
   const [playlists, setPlaylists] = useState("");
@@ -33,7 +28,6 @@ function AddVideoToPlaylist({
       const data = response.data;
       if (data.success) {
         setPlaylists(data.data);
-        console.log(data.data);
       }
       setLoading(false);
     } catch (error) {
@@ -58,7 +52,6 @@ function AddVideoToPlaylist({
       const data = response.data;
       if (data.success) {
         setIsSaved(playlistId);
-        console.log(data.data);
         setOnSuccess(data.message);
       }
       setLoading(false);
@@ -101,11 +94,13 @@ function AddVideoToPlaylist({
                   type="radio"
                   checked={playlistId === _id ? true : false}
                   id={_id}
-                  onClick={(e) => {
+                  onChange={(e) => {
                     setPlaylistId(e.target.id);
                   }}
                 />
-                <p className="name">{name}</p>
+                <label className="name" htmlFor={_id}>
+                  {name}
+                </label>
               </div>
             );
           })}

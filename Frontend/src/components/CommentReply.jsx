@@ -17,7 +17,6 @@ function CommentReply({ commentId, setComment, videoId }) {
       const response = await axiosPrivate.post(
         `/api/v1/likes/toggle/c/${replyId}`
       );
-      console.log(response);
       if (response.data.success) {
         const { likes } = response.data.data || {};
         setReply((prev) =>
@@ -31,7 +30,6 @@ function CommentReply({ commentId, setComment, videoId }) {
         );
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -45,7 +43,6 @@ function CommentReply({ commentId, setComment, videoId }) {
         setReply((prev) => prev.filter((com) => com._id !== replyId));
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -56,7 +53,6 @@ function CommentReply({ commentId, setComment, videoId }) {
         setReply(respone.data.data?.comments || []);
       }
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -82,7 +78,6 @@ function CommentReply({ commentId, setComment, videoId }) {
         );
       }
     } catch (error) {
-      console.log(error);
     }
   };
 

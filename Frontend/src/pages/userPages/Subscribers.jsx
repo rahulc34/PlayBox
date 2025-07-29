@@ -25,7 +25,7 @@ function Subscribers({ userId }) {
         setSubscribers(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -44,7 +44,13 @@ function Subscribers({ userId }) {
                 onClick={() => navigate(`/user/${username}`)}
               >
                 <div className="profile-container">
-                  <img src={avatar} alt="profile picture" className="profile" />
+                  {avatar && (
+                    <img
+                      src={avatar}
+                      alt="profile picture"
+                      className="profile"
+                    />
+                  )}
                 </div>
                 <div className="info">
                   <span className="info-upper">{username}</span>

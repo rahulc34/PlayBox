@@ -11,13 +11,13 @@ function Subscribe({ setTotalSubscription, isSubscribed, userId }) {
       );
       const data = response.data;
       if (data.success) {
-        console.log(data);
+        // console.log(data);
         const { subscriptionCount } = data.data;
         setSubscribed(!subscribed);
         if (setTotalSubscription) setTotalSubscription(subscriptionCount);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 

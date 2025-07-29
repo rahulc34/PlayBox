@@ -32,7 +32,7 @@ function PlaylistDetail() {
         setVideos(videos);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -40,7 +40,7 @@ function PlaylistDetail() {
     getPlaylistDetail();
   }, []);
 
-  console.log(playlistDetail);
+  // console.log(playlistDetail);
   return (
     <>
       <div>

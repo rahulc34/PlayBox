@@ -68,7 +68,7 @@ function VideoList({ userId }) {
       setLoading(false);
       setError(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
       setError(true);
       setErrorMsg(error.response.data.message);

@@ -13,12 +13,12 @@ function History() {
       const response = await axiosPrivate.get("/api/v1/users/history");
       const data = response.data;
       if (data.success) {
-        console.log("history-->");
-        console.log(data.data);
+        // console.log("history-->");
+        // console.log(data.data);
         setVideos(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 

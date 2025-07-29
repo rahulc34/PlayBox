@@ -25,13 +25,13 @@ function Dashboard() {
   const getChannelStatus = async () => {
     try {
       const response = await axiosPrivate.get("/api/v1/dashboard/stats");
-      console.log(response.data.data);
+      // console.log(response.data.data);
       const data = response.data;
       if (data.success) {
         setChannelStatus(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -41,11 +41,11 @@ function Dashboard() {
       const data = response.data;
 
       if (data.success) {
-        console.log(data);
+        // console.log(data);
         setChannelVideos(data.data.videos);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -126,7 +126,6 @@ function Dashboard() {
                     _id,
                     thumbnail,
                     title,
-                    duration,
                     views,
                     isPublished,
                     likes,
@@ -141,7 +140,7 @@ function Dashboard() {
                       <td>
                         <span
                           onClick={(e) => {
-                            console.log(e.target);
+                            // console.log(e.target);
                           }}
                         >
                           <input type="radio" checked={isPublished} />
@@ -205,7 +204,7 @@ function Dashboard() {
                               xmlns="http://www.w3.org/2000/svg"
                               stroke="#ffffff"
                             >
-                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                               <g
                                 id="SVGRepo_tracerCarrier"
                                 stroke="#ffffff"
@@ -270,7 +269,7 @@ function Dashboard() {
                               xmlns="http://www.w3.org/2000/svg"
                               stroke="#ffffff"
                             >
-                              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                              <g id="SVGRepo_bgCarrier" strokeWidth-="0"></g>
                               <g
                                 id="SVGRepo_tracerCarrier"
                                 strokeLinecap="round"

@@ -50,10 +50,13 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     throw new ApiError(400, "invalid user ID");
   }
 
+  let query = { owner: new mongoose.Types.ObjectId(userId) };
+  if (userId !== req.user._id.toString()) {
+    query = { ...query, isPrivate: false };
+  }
   // const userPlaylist = await Playlist.find({ owner: userId }).select("-videos");
-
   const userPlaylist = await Playlist.aggregate([
-    { $match: { owner: new mongoose.Types.ObjectId(userId) } },
+    { $match: query },
     {
       $addFields: {
         totalVideos: {

@@ -23,7 +23,6 @@ const LikeBtn = ({ video, setVideo }) => {
         });
       }
     } catch (error) {
-      console.log(error);
     }
   };
   return (

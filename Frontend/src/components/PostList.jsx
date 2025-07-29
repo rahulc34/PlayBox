@@ -16,12 +16,12 @@ function PostList({ userId }) {
     try {
       const response = await axiosPrivate.get(`/api/v1/tweets/user/${userId}`);
       const data = response.data;
-      console.log(data);
+      // console.log(data);
       if (data.success) {
         setposts(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -33,14 +33,14 @@ function PostList({ userId }) {
     if (!content?.trim()) return;
     try {
       const response = await axiosPrivate.post("/api/v1/tweets", { content });
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
         const tweet = response.data.data;
         setposts((prev) => [{ ...tweet, likes: 0, likedby: false }, ...prev]);
       }
-      console.log(response);
+      // console.log(response);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -52,7 +52,7 @@ function PostList({ userId }) {
         setposts((prev) => prev.filter((post) => post._id !== tweetId));
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -76,7 +76,7 @@ function PostList({ userId }) {
         );
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 

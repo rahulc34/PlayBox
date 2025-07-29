@@ -23,7 +23,7 @@ const UpdateProfile = ({ channel, setChannel }) => {
       setOnSuccess(false);
       const formData = new FormData();
       formData.append(operation, content);
-      console.log(operation, content, url);
+      // console.log(operation, content, url);
       const response = await axiosPrivate.patch(url, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -33,7 +33,7 @@ const UpdateProfile = ({ channel, setChannel }) => {
           setProgressBar(percent);
         },
       });
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
         setOnSuccess(response.data.message);
         const data = response.data.data;
@@ -41,7 +41,7 @@ const UpdateProfile = ({ channel, setChannel }) => {
       }
       setLoading(false);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setLoading(false);
       setIsError(error.response?.data?.message);
     }
@@ -60,7 +60,7 @@ const UpdateProfile = ({ channel, setChannel }) => {
     }
   };
 
-  console.log(progressBar)
+  // console.log(progressBar)
   if (loading)
     return (
       <h1>

@@ -18,24 +18,24 @@ function VideoDetail() {
 
       if (data.success) {
         setVideo(data.data);
-        console.log(data.data);
+        // console.log(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
 
   const viewIncrease = async () => {
     if (!video) return;
-    console.log("increasing the views");
+    // console.log("increasing the views");
     try {
       const response = await axiosPrivate.patch(
         `/api/v1/videos/saveIncView/${videoId}`
       );
-      console.log("response", response.data);
+      // console.log("response", response.data);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -45,15 +45,15 @@ function VideoDetail() {
     // getComment();
     const timeToIncreaseView =
       20 >= video.duration ? (video.duration / 2) * 1000 : 10000;
-    console.log(timeToIncreaseView);
+    // console.log(timeToIncreaseView);
     const intervalId = setTimeout(() => {
-      console.log("view incresing");
+      // console.log("view incresing");
       viewIncrease();
     }, timeToIncreaseView);
 
-    console.log("intervalind", intervalId);
+    // console.log("intervalind", intervalId);
     return () => {
-      console.log("cleanup");
+      // console.log("cleanup");
       clearTimeout(intervalId);
     };
   }, [videoId]);

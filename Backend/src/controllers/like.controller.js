@@ -120,6 +120,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
   const likeCount = await Like.countDocuments({ tweet: tweetId });
   const like = await Like.findOne({ tweet: tweetId, likedBy: userId });
+
   if (!like) {
     const createdLike = await Like.create({ tweet: tweetId, likedBy: userId });
     return res
@@ -127,7 +128,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { likes: likeCount ? 1 : likeCount + 1 },
+          { likes: likeCount <= 0 ? 1 : likeCount + 1 },
           `tweet is Liked successfully`
         )
       );
@@ -140,7 +141,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { likes: likeCount ? likeCount - 1 : 0 },
+        { likes: likeCount <= 0 ? 0 : likeCount - 1 },
         `tweet is dislike successfully`
       )
     );

@@ -8,7 +8,7 @@ function ForgetPassword() {
   const [email, setEmail] = useState("");
   const [isEmailSend, setIsEmailSend] = useState(false);
   const [errMsg, setErrMsg] = useState("");
-  console.log("comonodfs");
+  // console.log("comonodfs");
 
   const formHandler = async (e) => {
     e.preventDefault();
@@ -19,14 +19,14 @@ function ForgetPassword() {
         email,
       });
 
-      console.log(response);
+      // console.log(response);
       if (response.data.success) {
         setIsEmailSend(true);
       } else {
         setErrMsg(response.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       setErrMsg(error.message);
     }
   };

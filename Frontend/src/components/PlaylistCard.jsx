@@ -29,7 +29,7 @@ function PlaylistCard({ userId }) {
         setPlaylists(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
 
@@ -60,7 +60,7 @@ function PlaylistCard({ userId }) {
                 return (
                   <div
                     onClick={(e) => {
-                      console.log(e.target);
+                      // console.log(e.target);
                       if (e.target.id === "deleteBtn") {
                         setIsOpenDelete(true);
                         setplaylistDeleteId(_id);

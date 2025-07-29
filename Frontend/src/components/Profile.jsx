@@ -19,24 +19,24 @@ function Profile({
 
   const toggleSubscribe = async () => {
     try {
-      console.log("tirg");
+      // console.log("tirg");
       const response = await axiosPrivate.post(
         `/api/v1/subscriptions/c/${_id}`
       );
       const data = response.data;
       if (data.success) {
-        console.log(data);
+        // console.log(data);
         const { subscriptionCount } = data.data;
         const newUser = {
           ...userDetail,
           isSubscribed: !isSubscribed,
           subscribersCount: subscriptionCount,
         };
-        console.log("newuser", newUser);
+        // console.log("newuser", newUser);
         setUser(newUser);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
   

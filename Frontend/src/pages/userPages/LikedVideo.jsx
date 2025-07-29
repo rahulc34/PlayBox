@@ -18,10 +18,10 @@ function LikedVideo() {
         setVideos(data.data);
       }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
   };
-  console.log(videos);
+  // console.log(videos);
 
   useEffect(() => {
     getLikedVideos();

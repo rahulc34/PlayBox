@@ -25,6 +25,7 @@ function Pagination({ page, setPage, totalPage, setTotalPage }) {
         {btnarr.map((btnNum) => {
           return (
             <button
+              key={btnNum}
               className={selectedBtn === btnNum ? "active" : ""}
               onClick={(e) => {
                 setPage(btnNum);

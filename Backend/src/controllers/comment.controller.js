@@ -162,7 +162,7 @@ const addReplyToComment = asyncHandler(async (req, res) => {
   if (!content || !content.trim()) {
     throw new ApiError(400, "please enter content");
   }
-  console.log(videoId, commentId);
+  
   if (!isValidObjectId(videoId) && !isValidObjectId(commentId)) {
     throw new ApiError(400, "Invalid object id");
   }
