@@ -1,6 +1,6 @@
-# 🎬 PlayBox - YouTube Clone (MERN Stack)
+# 🎬 PlayBox - A video streaming Plateform(MERN Stack)
 
-PlayBox is a full-featured YouTube clone built with the MERN stack. It allows users to upload, watch, like/dislike videos, subscribe to channel, and comment with replies—mimicking the core functionality of YouTube.
+PlayBox is a full-featured video streaming plateform built with the MERN stack. It allows users to upload, watch, like/dislike videos, subscribe to channel, and comment with replies—mimicking the core.
 
 ## 🚀 Features
 
