@@ -122,12 +122,19 @@ npm run dev
 npm run dev
 ```
 
-## 🌐 Deployment
+## 🌐 Deployment (Render monorepo)
 
-- Project Deployment link: https://playbox-frontend.vercel.app
-- Frontend: [Vercel](https://vercel.com)
-- Backend: [Render](https://render.com) or [Railway](https://railway.app)
-- MongoDB: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+This repo is set up for **one Git repository** with `Frontend/` and `Backend/` deployed together on [Render](https://render.com).
+
+1. Push to GitHub  
+2. Render → **New** → **Blueprint** → select this repo  
+3. Add secrets from [`Backend/.env.example`](./Backend/.env.example) in the dashboard  
+4. Set `CLIENT_ORIGIN` to your Render URL (e.g. `https://playbox.onrender.com`)
+
+Full steps: **[DEPLOY.md](./DEPLOY.md)**
+
+- MongoDB: [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)  
+- Media: Cloudinary  
 
 ## 📸 Screenshots
 

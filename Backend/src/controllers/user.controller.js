@@ -7,6 +7,7 @@ import { isEmailValid } from "../utils/validations.js";
 import jwt from "jsonwebtoken";
 import mongoose, { mongo } from "mongoose";
 import { transporter } from "../middlewares/nodemailer.middleware.js";
+import { getCookieOptions, getClientOrigin } from "../utils/cookieOptions.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -123,10 +124,7 @@ const loginUser = asyncHandler(async (req, res) => {
     "-password -refreshToken -watchHistory"
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+  const options = getCookieOptions();
 
   return res
     .status(200)
@@ -160,10 +158,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
   );
 
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
+  const options = getCookieOptions();
 
   return res
     .status(200)
@@ -191,10 +186,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "refresh token is expired or used");
     }
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-    };
+    const options = getCookieOptions();
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
       user?._id
@@ -261,7 +253,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     from: process.env.NODEMAILER_EMAIL,
     to: email,
     subject: "Reset Password link",
-    text: `Reset your password : http://localhost:5173/resetPassword/${id}/${token} . Don't share this link with other people.`,
+    text: `Reset your password : ${getClientOrigin()}/resetPassword/${id}/${token} . Don't share this link with other people.`,
   };
   transporter.sendMail(mailOptions, async (error, info) => {
     if (error) {
@@ -349,7 +341,7 @@ const sendEmailVerify = asyncHandler(async (req, res) => {
     from: process.env.NODEMAILER_EMAIL,
     to: user.email,
     subject: "Email verify link",
-    text: `Please verify your email : http://localhost:5173/verifyEmail/${id}/${token} . Don't share this link with other people.`,
+    text: `Please verify your email : ${getClientOrigin()}/verifyEmail/${id}/${token} . Don't share this link with other people.`,
   };
 
   transporter.sendMail(mailOptions, async (error, info) => {

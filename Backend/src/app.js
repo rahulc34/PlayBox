@@ -1,14 +1,32 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import { getClientOrigin } from "./utils/cookieOptions.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  getClientOrigin(),
+].filter(Boolean);
 
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     credentials: true,
   })
 );
@@ -38,6 +56,20 @@ app.use("/api/v1/tweets", tweetRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/healthcheck", healthcheckRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
+
+if (process.env.SERVE_FRONTEND === "true") {
+  const frontendDist = path.join(__dirname, "../../Frontend/dist");
+  app.use(express.static(frontendDist));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDist, "index.html"), (err) => {
+      if (err) next(err);
+    });
+  });
+}
+
 app.use(errorMiddleware);
 
 export { app };

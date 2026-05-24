@@ -1,0 +1,52 @@
+# Render Blueprint — monorepo (Frontend + Backend in one repo)
+# https://render.com/docs/blueprint-spec
+#
+# Deploy: Dashboard → New → Blueprint → connect this repo.
+# Then set secret env vars in the Render dashboard (see DEPLOY.md).
+
+services:
+  - type: web
+    name: playbox
+    runtime: node
+    plan: free
+    buildCommand: >-
+      npm ci --prefix Frontend &&
+      npm run build --prefix Frontend &&
+      npm ci --prefix Backend --omit=dev
+    startCommand: npm start --prefix Backend
+    healthCheckPath: /api/v1/healthcheck
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: ACCESS_TOKEN_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: ACCESS_TOKEN_EXPIRY
+        value: 1d
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 10d
+      - key: RESET_PASSWORD_SECRET
+        sync: false
+      - key: RESET_PASSWORD_EXPIRY
+        value: 5m
+      - key: EMAIL_VERIFY_SECRET
+        sync: false
+      - key: EMAIL_VERIFY_EXPIRY
+        value: 5m
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: NODEMAILER_EMAIL
+        sync: false
+      - key: NODEMAILER_APP_PASSWORD
+        sync: false
