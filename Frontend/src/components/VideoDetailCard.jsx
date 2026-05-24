@@ -1,5 +1,6 @@
-import React, { use, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Bookmark } from "lucide-react";
 import { axiosPrivate } from "../api/axios.js";
 import LikeBtn from "./LikeBtn.jsx";
 import Subscribe from "./Subscribe.jsx";
@@ -7,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import Model from "../model/Model.jsx";
 import AddVideoToPlaylist from "./AddVideoToPlaylist.jsx";
 import CommentList from "./CommentList.jsx";
+import { cn } from "../lib/cn";
 
 const VideoDetailCard = ({ video, setVideo }) => {
   const {
@@ -16,8 +18,6 @@ const VideoDetailCard = ({ video, setVideo }) => {
     title,
     description,
     views,
-    // likes,
-    // likedby,
     PlaylistId: alreadySaved,
     createdAt,
   } = video;
@@ -42,62 +42,75 @@ const VideoDetailCard = ({ video, setVideo }) => {
       const respone = await axiosPrivate.patch(
         `/api/v1/playlist/remove/${videoId}/${isSaved}`
       );
-
-      if (respone.data.success) {
-        setIsSaved("");
-      }
-    } catch (error) {
-      // console.log(error);
+      if (respone.data.success) setIsSaved("");
+    } catch {
+      /* ignore */
     }
   };
 
   useEffect(() => {
     setIsSaved(alreadySaved || false);
     setTotalSubscription(subscribersCount);
-  }, [video]);
+  }, [video, alreadySaved, subscribersCount]);
 
   return (
     <>
-      <div className="videoWrapper">
-        <video key={videoId} width="320px" controls>
+      <div className="overflow-hidden rounded-2xl bg-black shadow-xl">
+        <video key={videoId} controls className="aspect-video w-full">
           <source src={videoFile} />
         </video>
       </div>
-      <div className="videoDetail">
-        <div className="upper-detail">
-          <div className="info">
-            <span className="title">{title}</span>
-            <p>
-              <span>{views} views.</span>
-              <span> {new Date(createdAt).toLocaleDateString()}</span>
+
+      <div className="mt-4 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-xl font-bold text-foreground">{title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {views} views · {new Date(createdAt).toLocaleDateString()}
             </p>
           </div>
-          <div style={{ display: "flex", gap: "3px" }}>
+          <div className="flex flex-wrap gap-2">
             {videoId && <LikeBtn setVideo={setVideo} video={video} />}
             <button
-              className="like"
-              onClick={() => {
-                if (isSaved) removeVideoFromPlaylist();
-                else setAddOpenPlaylist(true);
-              }}
+              type="button"
+              onClick={() =>
+                isSaved ? removeVideoFromPlaylist() : setAddOpenPlaylist(true)
+              }
+              className={cn(
+                "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
+                isSaved
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-border bg-card text-foreground hover:bg-muted"
+              )}
             >
-              {isSaved ? "Saved" : "save"}
+              <Bookmark size={16} />
+              {isSaved ? "Saved" : "Save"}
             </button>
           </div>
         </div>
-        <div className="lower-detail">
-          <div
-            className="profile"
+
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-4">
+          <button
+            type="button"
+            className="flex items-center gap-3 text-left"
             onClick={() => navigate(`/user/${username}`)}
           >
-            <div className="profile-container">
-              <img src={avatar} alt="profile picture" className="profile" />
+            <div className="h-12 w-12 overflow-hidden rounded-full border-2 border-violet-100 bg-violet-50">
+              {avatar ? (
+                <img src={avatar} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-lg font-bold text-violet-600">
+                  {(fullname || username || "?")[0].toUpperCase()}
+                </span>
+              )}
             </div>
-            <span className="userinfo">
-              <p className="username">{fullname}</p>
-              <p className="subscribers">{totalSubscription} Subscribers</p>
-            </span>
-          </div>
+            <div>
+              <p className="font-semibold text-foreground">{fullname}</p>
+              <p className="text-sm text-muted-foreground">
+                {totalSubscription} subscribers
+              </p>
+            </div>
+          </button>
           {userId !== user._id && (
             <Subscribe
               isSubscribed={isSubscribed}
@@ -106,16 +119,30 @@ const VideoDetailCard = ({ video, setVideo }) => {
             />
           )}
         </div>
-        <p className={"description " + (readMore ? "activeRead" : "")}>
-          Description: {description}
-          <span className="moreBtn" onClick={() => setReadMore(!readMore)}>
-            more
-          </span>
-        </p>
-        <div>
-          <CommentList videoId={videoId} />
+
+        <div className="rounded-2xl border border-border bg-muted/40 p-4">
+          <p
+            className={cn(
+              "text-sm leading-relaxed text-muted-foreground",
+              !readMore && "line-clamp-3"
+            )}
+          >
+            {description}
+          </p>
+          {description?.length > 120 && (
+            <button
+              type="button"
+              className="mt-2 text-sm font-semibold text-primary hover:underline"
+              onClick={() => setReadMore(!readMore)}
+            >
+              {readMore ? "Show less" : "Show more"}
+            </button>
+          )}
         </div>
+
+        <CommentList videoId={videoId} />
       </div>
+
       <Model isOpen={addOpenPlaylist} isClose={setAddOpenPlaylist}>
         <AddVideoToPlaylist
           videoId={videoId}

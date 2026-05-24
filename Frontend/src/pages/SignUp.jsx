@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import "../cssStyles/signUp.css";
-import Input from "../components/Input";
-import Button from "../components/Button";
+import AuthLayout from "../components/ui/AuthLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 function SignUp() {
   const navigate = useNavigate();
@@ -11,73 +11,60 @@ function SignUp() {
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const { signup, isAuthenticated } = useAuth();
-  const userRef = useRef();
+  const { signup } = useAuth();
 
   return (
-    <div className="box-container">
-      <div>
-        <p>PlayBox</p>
-      </div>
-
-      <h2>Sign Up</h2>
+    <AuthLayout
+      title="Create account"
+      subtitle="Join Playbox and start sharing"
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="font-semibold text-violet-600 hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
       <form
+        className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          const credentials = { username, fullname, email, password };
-          signup(credentials, navigate);
+          signup({ username, fullname, email, password }, navigate);
         }}
       >
-        <p>create your account</p>
         <Input
           type="text"
           name="username"
-          placeholder="Enter Your name"
+          placeholder="johndoe"
           value={username}
           setValue={setUsername}
         />
         <Input
           type="text"
           name="fullname"
-          placeholder="Enter Your fullname"
+          placeholder="John Doe"
           value={fullname}
           setValue={setFullname}
+          label="full name"
         />
         <Input
           type="email"
           name="email"
-          placeholder="Enter Your email"
+          placeholder="you@example.com"
           value={email}
           setValue={setEmail}
         />
         <Input
           type="password"
           name="password"
-          placeholder="Enter Your password"
+          placeholder="Create a password"
           value={password}
           setValue={setPassword}
         />
-        <div>
-          <Link to="/forgetPassword">Forgot Password</Link>
-        </div>
-        <div>
-          <Button text={"submit"} />
-        </div>
-        <div>
-          <div>
-            Already Have an account ?{" "}
-            <span
-              onClick={() => {
-                navigate("/login");
-              }}
-            >
-              Login
-            </span>
-          </div>
-        </div>
+        <Button type="submit" text="Create account" className="w-full" />
       </form>
-    </div>
+    </AuthLayout>
   );
 }
 

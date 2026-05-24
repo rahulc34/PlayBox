@@ -1,96 +1,61 @@
-import React from "react";
 import { useState } from "react";
 import EmojiPicker from "emoji-picker-react";
+import { Smile } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import emojiIcon from "../assests/smile.png";
+import UserAvatar from "./UserAvatar";
+import Button from "./ui/Button";
 
-function PostCreate({ submitHandler }) {
+function PostCreate({ submitHandler, placeholder = "Add a comment…" }) {
   const { user } = useAuth();
   const [openEmoji, setOpenEmoji] = useState(false);
-
   const [content, setContent] = useState("");
 
-  const onEmojiClick = (imogi) => {
-    setContent((prev) => {
-      return prev + imogi.emoji;
-    });
+  const handleSubmit = () => {
+    if (!content.trim()) return;
+    submitHandler(content.trim());
+    setContent("");
+    setOpenEmoji(false);
   };
 
   return (
-    <div
-      style={{
-        border: "1px solid black",
-        margin: "0 20px 0 10px",
-        padding: "8px 16px",
-        borderRadius: "10px",
-        backgroundColor: "white",
-        maxWidth: "740px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          margin: "0 0 10px 0",
-        }}
-      >
-        <div className="dashboardButton">
-          <p>{user.username[0].toUpperCase()}</p>
-        </div>
-        <span style={{ fontWeight: "700" }}>{user.username}</span>
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="mb-3 flex items-center gap-3">
+        <UserAvatar src={user?.avatar} name={user?.username} size="md" />
+        <span className="font-semibold text-foreground">@{user?.username}</span>
       </div>
-      <input
-        type="text"
-        style={{
-          border: "0",
-          borderBottom: "1px solid black",
-          width: "100%",
-          padding: "8px 16px",
-          fontSize: "1.1rem",
-        }}
+
+      <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        placeholder={placeholder}
+        rows={2}
+        className="w-full resize-none rounded-xl border border-border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-ring/30"
       />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginTop: "10px",
-        }}
-      >
-        <button
-          onClick={() => {
-            setOpenEmoji((prev) => !prev);
-          }}
-          style={{ border: "none", backgroundColor: "inherit" }}
-        >
-          <img src={emojiIcon} alt="emoji" width="25px" />
-        </button>
-        <div style={{ position: "absolute", zIndex: "29", marginTop: "30px" }}>
-          <EmojiPicker
-            open={openEmoji}
-            lazyLoadEmojis={true}
-            width={300}
-            onEmojiClick={onEmojiClick}
-          />
+
+      <div className="relative mt-3 flex items-center justify-between">
+        <div className="relative">
+          <button
+            type="button"
+            aria-label="Add emoji"
+            onClick={() => setOpenEmoji((prev) => !prev)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          >
+            <Smile size={20} />
+          </button>
+          {openEmoji && (
+            <div className="absolute left-0 top-full z-50 mt-2">
+              <EmojiPicker
+                open={openEmoji}
+                lazyLoadEmojis
+                width={300}
+                onEmojiClick={(emoji) =>
+                  setContent((prev) => prev + emoji.emoji)
+                }
+              />
+            </div>
+          )}
         </div>
-        <button
-          style={{
-            padding: "8px 16px",
-            borderRadius: "16px",
-            border: "none",
-            backgroundColor: "blue",
-            color: "white",
-          }}
-          onClick={(e) => {
-            submitHandler(content);
-            setContent("");
-            setOpenEmoji(false);
-          }}
-        >
-          Post
-        </button>
+        <Button type="button" size="sm" text="Post" onClick={handleSubmit} />
       </div>
     </div>
   );

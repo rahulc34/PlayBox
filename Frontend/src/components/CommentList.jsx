@@ -1,24 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { MessageSquare } from "lucide-react";
 import PostCreate from "./PostCreate";
 import { axiosPrivate } from "../api/axios";
-import dislikelogo from "../assests/thumb.png";
-import likelogo from "../assests/like.png";
-import deleteIcon from "../assests/delete.png";
-import revealComment from "../assests/revealComment.png";
 import { useAuth } from "../contexts/AuthContext";
-import showMoreIcon from "../assests/down-chevron.png";
-import closeShowIcon from "../assests/up-chevron.png";
 import CommentReply from "./CommentReply";
 import Pagination from "./Pagination";
+import CommentItem from "./CommentItem";
+import { cn } from "../lib/cn";
 
 function CommentList({ videoId }) {
   const { user } = useAuth();
   const [comment, setComment] = useState([]);
   const [replyShowIds, setReplyShowIds] = useState([]);
-
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
-  const [showComment, setShowComment] = useState(false);
+  const [showComment, setShowComment] = useState(true);
 
   const toggleReplyVisibility = (commentId) => {
     setReplyShowIds((prev) =>
@@ -35,12 +31,14 @@ function CommentList({ videoId }) {
       );
       const data = response.data;
       if (data.success) {
-        const { page, total } = data.data;
-        setPage(page);
+        const { page: p, total } = data.data;
+        setPage(p);
         setTotalPage(total / 10 + (total % 10 !== 0 ? 1 : 0));
-        setComment(data.data?.comments);
+        setComment(data.data?.comments || []);
       }
-    } catch (error) {}
+    } catch {
+      /* ignore */
+    }
   };
 
   const toggleCommentLike = async (commentId) => {
@@ -51,16 +49,16 @@ function CommentList({ videoId }) {
       if (response.data.success) {
         const { likes } = response.data.data || {};
         setComment((prev) =>
-          prev.map((comment) => {
-            if (comment._id === commentId) {
-              const likedby = comment.likedby;
-              const newcomment = { ...comment, likedby: !likedby, likes };
-              return newcomment;
-            } else return comment;
-          })
+          prev.map((c) =>
+            c._id === commentId
+              ? { ...c, likedby: !c.likedby, likes }
+              : c
+          )
         );
       }
-    } catch (error) {}
+    } catch {
+      /* ignore */
+    }
   };
 
   const createComment = async (content) => {
@@ -68,7 +66,6 @@ function CommentList({ videoId }) {
       const response = await axiosPrivate.post(`/api/v1/comments/${videoId}`, {
         content,
       });
-
       if (response.data.success) {
         const newComment = response.data?.data;
         const { avatar, username } = user;
@@ -80,11 +77,14 @@ function CommentList({ videoId }) {
             reply: 0,
             avatar,
             username,
+            owner: user._id,
           },
           ...comment,
         ]);
       }
-    } catch (error) {}
+    } catch {
+      /* ignore */
+    }
   };
 
   const deleteComment = async (commentId) => {
@@ -92,11 +92,12 @@ function CommentList({ videoId }) {
       const response = await axiosPrivate.delete(
         `/api/v1/comments/c/${commentId}`
       );
-
       if (response.data.success) {
         setComment((prev) => prev.filter((com) => com._id !== commentId));
       }
-    } catch (error) {}
+    } catch {
+      /* ignore */
+    }
   };
 
   useEffect(() => {
@@ -104,155 +105,65 @@ function CommentList({ videoId }) {
   }, [videoId, page]);
 
   return (
-    <div>
+    <section className="mt-6">
       <PostCreate submitHandler={createComment} />
+
       <button
+        type="button"
         onClick={() => setShowComment((prev) => !prev)}
-        style={{
-          border: "none",
-          backgroundColor: "inherit",
-          margin: "20px",
-          borderBottom: "1px solid black",
-        }}
+        className="mt-6 flex items-center gap-2 text-sm font-semibold text-foreground transition hover:text-primary"
       >
-        <img src={revealComment} alt="" width="24px" />
-        <p>comments</p>
+        <MessageSquare size={18} />
+        Comments {comment?.length ? `(${comment.length})` : ""}
       </button>
+
       <div
-        style={{
-          display: showComment ? "block" : "none",
-          transition: "all 0.2s ease",
-        }}
+        className={cn(
+          "mt-4 overflow-hidden rounded-2xl border border-border bg-card transition-all",
+          !showComment && "hidden"
+        )}
       >
-        {comment && comment.length && (
-          <div>
-            <Pagination
-              page={page}
-              totalPage={totalPage}
-              setPage={setPage}
-              setTotalPage={setTotalPage}
-            />
+        {comment?.length > 0 && (
+          <div className="flex justify-end border-b border-border px-4 py-3">
+            <Pagination page={page} totalPage={totalPage} setPage={setPage} />
           </div>
         )}
 
-        {comment &&
-          comment.length &&
-          comment.map(
-            ({
-              _id,
-              avatar,
-              content,
-              createdAt,
-              reply,
-              username,
-              likedby,
-              likes,
-              owner,
-            }) => {
-              const likeBtnUrl = likedby ? likelogo : dislikelogo;
-
-              return (
-                <div style={{ display: "flex", margin: "18px 0" }} key={_id}>
-                  <div
-                    className="profile-container"
-                    style={{ boxShadow: "none", margin: "10px" }}
-                  >
-                    <img src={avatar} alt="sdf" className="profile" />
-                  </div>
-
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        fontSize: "0.8rem",
-                        fontWeight: "700",
-                      }}
-                    >
-                      <p>{username}</p>
-                      <p style={{ padding: "0 8px", fontSize: "0.7rem" }}>
-                        {new Date(createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p>{content}</p>
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "10px",
-                          alignItems: "center",
-                        }}
-                      >
-                        <img
-                          src={likeBtnUrl}
-                          alt="like"
-                          width="20px"
-                          onClick={() => {
-                            toggleCommentLike(_id);
-                          }}
-                        />
-                        <p>{likes || 0}</p>
-                        {user._id === owner && (
-                          <button
-                            style={{
-                              border: "none",
-                              backgroundColor: "inherit",
-                              marginTop: "4px",
-                            }}
-                            onClick={() => {
-                              deleteComment(_id);
-                            }}
-                          >
-                            <img src={deleteIcon} alt="" width="17px" />
-                          </button>
-                        )}
-                      </div>
-
-                      <button
-                        style={{
-                          border: "0",
-                          borderRadius: "10px",
-                          padding: "4px 8px",
-                          marginTop: "8px",
-                          backgroundColor: "blue",
-                          color: "white",
-                          fontSize: "0.9rem",
-                        }}
-                      >
-                        {reply} reply{" "}
-                      </button>
-
-                      <img
-                        src={
-                          replyShowIds.includes(_id)
-                            ? closeShowIcon
-                            : showMoreIcon
-                        }
-                        alt=""
-                        width="14px"
-                        style={{ marginLeft: "10px", cursor: "pointer" }}
-                        onClick={() => {
-                          toggleReplyVisibility(_id);
-                        }}
-                      />
-                    </div>
-                    {replyShowIds.includes(_id) && (
-                      <CommentReply
-                        commentId={_id}
-                        setComment={setComment}
-                        videoId={videoId}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            }
+        <div className="px-4">
+          {comment?.length > 0 ? (
+            comment.map((c) => (
+              <CommentItem
+                key={c._id}
+                username={c.username}
+                avatar={c.avatar}
+                content={c.content}
+                createdAt={c.createdAt}
+                likes={c.likes}
+                likedby={c.likedby}
+                isOwner={user._id === c.owner}
+                replyCount={c.reply}
+                showReplies={replyShowIds.includes(c._id)}
+                onToggleReplies={() => toggleReplyVisibility(c._id)}
+                onLike={() => toggleCommentLike(c._id)}
+                onDelete={() => deleteComment(c._id)}
+              >
+                {replyShowIds.includes(c._id) && (
+                  <CommentReply
+                    commentId={c._id}
+                    setComment={setComment}
+                    videoId={videoId}
+                  />
+                )}
+              </CommentItem>
+            ))
+          ) : (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No comments yet. Be the first to share your thoughts.
+            </p>
           )}
-
-        {!comment && <h2>No comment Found</h2>}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 

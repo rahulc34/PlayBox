@@ -1,24 +1,21 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { axiosPrivate } from "../../api/axios";
-import { useEffect } from "react";
 import VideoCard from "../../components/VideoCard";
-import { useState } from "react";
 import CenterDiv from "../../components/CenterDiv";
 import EmptyPage from "../../components/EmptyPage";
+import PageHeader from "../../components/PageHeader";
 
 function History() {
-  const [videos, setVideos] = useState("");
+  const [videos, setVideos] = useState(null);
+
   const getHistory = async () => {
     try {
       const response = await axiosPrivate.get("/api/v1/users/history");
-      const data = response.data;
-      if (data.success) {
-        // console.log("history-->");
-        // console.log(data.data);
-        setVideos(data.data);
+      if (response.data.success) {
+        setVideos(response.data.data);
       }
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      setVideos([]);
     }
   };
 
@@ -27,12 +24,27 @@ function History() {
   }, []);
 
   return (
-    <div className="grid-container">
-      {videos &&
-        videos.map((video) => <VideoCard {...video} key={video._id} />)}
-      {videos && !videos.length && (
+    <div>
+      <PageHeader
+        title="Watch history"
+        subtitle="Videos you've watched recently"
+      />
+      {videos === null ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      ) : videos.length > 0 ? (
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3">
+          {videos.map((video) => (
+            <VideoCard {...video} key={video._id} />
+          ))}
+        </div>
+      ) : (
         <CenterDiv>
-          <EmptyPage title="History is empty" desc="you have yet to see video" />
+          <EmptyPage
+            title="History is empty"
+            desc="Videos you watch will appear here."
+          />
         </CenterDiv>
       )}
     </div>

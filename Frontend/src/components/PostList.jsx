@@ -1,27 +1,24 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { axiosPrivate } from "../api/axios";
 import { useAuth } from "../contexts/AuthContext";
 import EmptyPage from "./EmptyPage";
-import CenterDiv from "./CenterDiv.jsx";
-import PostCreate from "./PostCreate.jsx";
-import deleteIcon from "../assests/delete.png";
-import dislikelogo from "../assests/thumb.png";
-import likelogo from "../assests/like.png";
+import CenterDiv from "./CenterDiv";
+import PostCreate from "./PostCreate";
+import PostCard from "./PostCard";
+import PageHeader from "./PageHeader";
 
 function PostList({ userId }) {
-  const [posts, setposts] = useState([]);
+  const [posts, setPosts] = useState(null);
   const { user } = useAuth();
 
   const getAllPost = async () => {
     try {
       const response = await axiosPrivate.get(`/api/v1/tweets/user/${userId}`);
-      const data = response.data;
-      // console.log(data);
-      if (data.success) {
-        setposts(data.data);
+      if (response.data.success) {
+        setPosts(response.data.data || []);
       }
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      setPosts([]);
     }
   };
 
@@ -33,14 +30,21 @@ function PostList({ userId }) {
     if (!content?.trim()) return;
     try {
       const response = await axiosPrivate.post("/api/v1/tweets", { content });
-      // console.log(response);
       if (response.data.success) {
         const tweet = response.data.data;
-        setposts((prev) => [{ ...tweet, likes: 0, likedby: false }, ...prev]);
+        setPosts((prev) => [
+          {
+            ...tweet,
+            likes: 0,
+            likedby: false,
+            username: user.username,
+            avatar: user.avatar,
+          },
+          ...(prev || []),
+        ]);
       }
-      // console.log(response);
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -48,11 +52,10 @@ function PostList({ userId }) {
     try {
       const response = await axiosPrivate.delete(`/api/v1/tweets/${tweetId}`);
       if (response.data.success) {
-        const post = response.data.data;
-        setposts((prev) => prev.filter((post) => post._id !== tweetId));
+        setPosts((prev) => prev.filter((post) => post._id !== tweetId));
       }
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      /* ignore */
     }
   };
 
@@ -61,79 +64,73 @@ function PostList({ userId }) {
       const response = await axiosPrivate.post(
         `/api/v1/likes/toggle/t/${tweetId}`
       );
-
       if (response.data.success) {
         const { likes } = response.data.data || {};
-        console.log(likes);
-        setposts((prev) =>
-          prev.map((post) => {
-            if (post._id === tweetId) {
-              const likedby = post.likedby
-              const newpost = { ...post, likedby: !likedby, likes };
-              return newpost;
-            } else return post;
-          })
+        setPosts((prev) =>
+          prev.map((post) =>
+            post._id === tweetId
+              ? { ...post, likedby: !post.likedby, likes }
+              : post
+          )
         );
       }
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      /* ignore */
     }
   };
 
+  const isOwner = userId === user._id;
+
   return (
-    <>
-      {userId === user._id && (
-        <div className="playlist-header">
-          <p className="name">{posts.length} Post</p>
-        </div>
+    <div>
+      {isOwner ? (
+        <>
+          <PageHeader
+            title="Posts"
+            subtitle={posts?.length ? `${posts.length} post${posts.length === 1 ? "" : "s"}` : "Share updates with your audience"}
+          />
+          <div className="mb-6">
+            <PostCreate submitHandler={createPost} placeholder="What's on your mind?" />
+          </div>
+        </>
+      ) : (
+        <PageHeader title="Posts" subtitle="Updates from this creator" />
       )}
-      {userId === user._id && <PostCreate submitHandler={createPost} />}
-      <div className="plylistwrapper">
-        {posts.length &&
-          posts.map(({ content, _id, createdAt, likedby, likes }) => {
-            const likeBtnUrl = likedby ? likelogo : dislikelogo;
-            return (
-              <div key={_id} className="playlistcontain">
-                <p style={{ fontSize: "0.8rem", fontWeight: "700" }}>
-                  {new Date(createdAt).toLocaleDateString()}
-                  {"  "}
-                  {new Date(createdAt).toLocaleTimeString()}
-                </p>
-                <div className="playlist-content">
-                  <p className="description" style={{ fontSize: "1rem" }}>
-                    {content}
-                  </p>
-                  {userId === user._id && (
-                    <button
-                      className="editBtn"
-                      onClick={() => deleteTweet(_id)}
-                    >
-                      <img src={deleteIcon} alt="delete" width="19px" />
-                    </button>
-                  )}
-                  <button
-                    className="like"
-                    onClick={() => {
-                      toggleTweetLike(_id);
-                    }}
-                  >
-                    <p>{likes || 0}</p>
-                    <img src={likeBtnUrl} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        {!posts.length && (
-          <CenterDiv>
-            <EmptyPage
-              title="No Posts Found"
-              desc="This channel yet have to make post"
+
+      {posts === null ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      ) : posts.length > 0 ? (
+        <div className="mx-auto max-w-2xl space-y-4">
+          {posts.map((post) => (
+            <PostCard
+              key={post._id}
+              content={post.content}
+              createdAt={post.createdAt}
+              username={post.username || post.owner?.username}
+              avatar={post.avatar || post.owner?.avatar}
+              likes={post.likes}
+              likedby={post.likedby}
+              isOwner={isOwner}
+              onLike={() => toggleTweetLike(post._id)}
+              onDelete={() => deleteTweet(post._id)}
             />
-          </CenterDiv>
-        )}
-      </div>
-    </>
+          ))}
+        </div>
+      ) : (
+        <CenterDiv>
+          <EmptyPage
+            title="No posts yet"
+            desc={
+              isOwner
+                ? "Share your first update with followers."
+                : "This creator hasn't posted anything yet."
+            }
+          />
+        </CenterDiv>
+      )}
+    </div>
   );
 }
 

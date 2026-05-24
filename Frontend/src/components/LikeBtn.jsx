@@ -1,12 +1,11 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ThumbsUp } from "lucide-react";
 import { axiosPrivate } from "../api/axios";
-import { useState } from "react";
-import dislikelogo from "../assests/thumb.png";
-import likelogo from "../assests/like.png";
+import { cn } from "../lib/cn";
 
 const LikeBtn = ({ video, setVideo }) => {
   const { likedby } = video || {};
-  const likeBtnUrl = likedby ? likelogo : dislikelogo;
 
   const toggleTweetLike = async () => {
     try {
@@ -14,7 +13,6 @@ const LikeBtn = ({ video, setVideo }) => {
         `/api/v1/likes/toggle/v/${video._id}`
       );
       const data = response.data;
-
       if (data.success) {
         setVideo({
           ...video,
@@ -22,18 +20,24 @@ const LikeBtn = ({ video, setVideo }) => {
           likedby: !likedby,
         });
       }
-    } catch (error) {
+    } catch {
+      /* ignore */
     }
   };
+
   return (
     <button
-      className="like"
-      onClick={() => {
-        toggleTweetLike();
-      }}
+      type="button"
+      onClick={toggleTweetLike}
+      className={cn(
+        "flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition",
+        likedby
+          ? "border-violet-200 bg-violet-50 text-violet-700"
+          : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+      )}
     >
-      <p>{video?.likes || 0}</p>
-      <img src={likeBtnUrl} />
+      <ThumbsUp size={16} className={likedby ? "fill-violet-600" : ""} />
+      {video?.likes || 0}
     </button>
   );
 };

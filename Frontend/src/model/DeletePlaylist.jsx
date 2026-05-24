@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import "../cssStyles/CreatePlaylist.css";
+import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { axiosPrivate } from "../api/axios";
-import { useNavigate } from "react-router-dom";
-import Error from "../components/Error";
+import Button from "../components/ui/Button";
+import { ModalStatus } from "../components/ui/FormField";
 
 const DeletePlaylist = ({
   playlistId,
@@ -13,78 +13,67 @@ const DeletePlaylist = ({
   state,
 }) => {
   const [loading, setLoading] = useState(false);
-  const [created, setcreated] = useState(false);
+  const [done, setDone] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
-  const deleteVideo = async () => {
+  const isVideo = state === "deleteVideo";
+
+  const handleDelete = async () => {
     try {
       setLoading(true);
-      setcreated(false);
+      setDone(false);
       setError("");
-      const response = await axiosPrivate.delete(
-        `/api/v1/videos/${deleteVideoId}`
-      );
-      if (response.data.success) {
-        setcreated(true);
-        const newVideos = [];
-        for (let video of newVideos) {
-          if (video._id !== deleteVideoId) newVideos.push(video);
+      if (isVideo) {
+        const response = await axiosPrivate.delete(
+          `/api/v1/videos/${deleteVideoId}`
+        );
+        if (response.data.success) {
+          setDone(true);
+          setChannelVideo?.((prev) =>
+            prev.filter((v) => v._id !== deleteVideoId)
+          );
         }
-        setChannelVideo(newVideos);
+      } else {
+        const response = await axiosPrivate.delete(
+          `/api/v1/playlist/${playlistId}`
+        );
+        if (response.data.success) {
+          setDone(true);
+          setPlaylists?.(playlists.filter((p) => p._id !== playlistId));
+        }
       }
       setLoading(false);
-    } catch (error) {
+    } catch (err) {
       setLoading(false);
-      setError(error.response.data.message);
+      setError(err.response?.data?.message || "Delete failed");
     }
   };
 
-  const deletePlaylist = async () => {
-    try {
-      setLoading(true);
-      setcreated(false);
-      setError("");
-      const response = await axiosPrivate.delete(
-        `/api/v1/playlist/${playlistId}`
-      );
-      if (response.data.success) {
-        setcreated(true);
-        const newplaylists = [];
-        for (let playlist of playlists) {
-          if (playlist._id !== playlistId) newplaylists.push(playlist);
-        }
-        setPlaylists(newplaylists);
-      }
-      setLoading(false);
-    } catch (error) {
-      setLoading(false);
-      setError(error.response.data.message);
-    }
-  };
-
-  if (created)
+  if (loading || done) {
     return (
-      <h2>
-        {state === "deleteVideo" ? "video" : "playlist"} deleted successfully
-      </h2>
+      <ModalStatus
+        loading={loading}
+        success={done}
+        loadingText="Deleting…"
+        successText={`${isVideo ? "Video" : "Collection"} deleted successfully`}
+      />
     );
-  if (loading) return <h1>Loading...</h1>;
+  }
 
   return (
-    <>
-      <div className="createPlaylistWrapper deletemenu">
-        <button
-          onClick={() => {
-            if (state === "deleteVideo") deleteVideo();
-            else deletePlaylist();
-          }}
-        >
-          Delete
-        </button>
+    <div className="space-y-4 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/10 text-red-500">
+        <AlertTriangle size={24} />
       </div>
-      {error && <Error message={error} />}
-    </>
+      <h2 className="font-display text-lg font-bold text-foreground">
+        Delete {isVideo ? "video" : "collection"}?
+      </h2>
+      <p className="text-sm text-muted-foreground">
+        This action cannot be undone.
+      </p>
+      <Button variant="danger" className="w-full" onClick={handleDelete} text="Delete permanently" />
+      {error && <ModalStatus error={error} />}
+    </div>
   );
 };
 

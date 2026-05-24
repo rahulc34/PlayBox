@@ -26,15 +26,18 @@ import RedirectIfAuth from "./utils/RedirectIfAuth.jsx";
 import ForgetPassword from "./pages/ForgetPassword.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import { ToggleProvider } from "./contexts/ToggleSidebar.jsx";
+import { ThemeProvider } from "./contexts/ThemeContext.jsx";
 import UserProfile from "./pages/UserProfile.jsx";
 import PlaylistDetail from "./components/PlaylistDetail.jsx";
 import SubscribedTo from "./pages/userPages/SubscribedTo.jsx";
+import { SupportPage, SettingsPage } from "./pages/StaticPages.jsx";
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <ToggleProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ToggleProvider>
           <Routes>
             <Route path="/verifyEmail/:id/:token" element={<VerifyEmail />} />
             <Route path="/" element={<RootLayout />}>
@@ -53,8 +56,8 @@ function App() {
                 <Route path="/subscribedTo" element={<SubscribedTo />} />
                 <Route path="/liked-video" element={<LikedVideo />} />
                 <Route path="/collections" element={<Playlist />} />
-                <Route path="/support" element={<h1>support</h1>} />
-                <Route path="setting" element={<h1>setting</h1>} />
+                <Route path="/support" element={<SupportPage />} />
+                <Route path="/setting" element={<SettingsPage />} />
               </Route>
               <Route
                 path="/login"
@@ -91,8 +94,9 @@ function App() {
               <Route path="*" element={<ErrorPage />} />
             </Route>
           </Routes>
-        </ToggleProvider>
-      </AuthProvider>
+          </ToggleProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

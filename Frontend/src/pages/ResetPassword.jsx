@@ -1,59 +1,51 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import AuthLayout from "../components/ui/AuthLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
   const [conformPassword, setConformPassword] = useState("");
-  const [matchPassword, setmatchPassword] = useState(false);
   const navigate = useNavigate();
   const { id, token } = useParams();
 
   const resetPassword = async (e) => {
     e.preventDefault();
-    // console.log(id, "  ", token);
+    if (password !== conformPassword) return;
     try {
       const response = await axios.post(
         `/api/v1/users/reset-password/${id}/${token}`,
-        {
-          newPassword: password,
-        }
+        { newPassword: password }
       );
-
-      // console.log(response);
-      if (response.data.success) {
-        navigate("/login");
-      }
-    } catch (error) {
-      // console.log(error);
+      if (response.data.success) navigate("/login");
+    } catch {
+      /* ignore */
     }
   };
 
   return (
-    <div className="box-container">
-      <div>
-        <p>Reset Password</p>
-      </div>
-      <form onSubmit={resetPassword}>
+    <AuthLayout title="New password" subtitle="Choose a strong password">
+      <form className="flex flex-col gap-4" onSubmit={resetPassword}>
         <Input
           type="password"
           name="password"
-          placeholder="Enter Your password"
+          placeholder="New password"
           value={password}
           setValue={setPassword}
         />
         <Input
           type="password"
-          name="conformPassword"
-          placeholder="conform Your password"
+          name="confirm"
+          label="confirm password"
+          placeholder="Confirm password"
           value={conformPassword}
           setValue={setConformPassword}
         />
-        <div>
-          <Button text={"submit"} />
-        </div>
+        <Button type="submit" text="Reset password" className="w-full" />
       </form>
-    </div>
+    </AuthLayout>
   );
 }
 

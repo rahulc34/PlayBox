@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
-import Button from "../components/Button";
-import Input from "../components/Input";
+import AuthLayout from "../components/ui/AuthLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 import Error from "../components/Error";
+import { CheckCircle } from "lucide-react";
 
 function ForgetPassword() {
   const [email, setEmail] = useState("");
   const [isEmailSend, setIsEmailSend] = useState(false);
   const [errMsg, setErrMsg] = useState("");
-  // console.log("comonodfs");
 
   const formHandler = async (e) => {
     e.preventDefault();
@@ -18,42 +19,42 @@ function ForgetPassword() {
       const response = await axios.post("/api/v1/users/forget-password", {
         email,
       });
-
-      // console.log(response);
       if (response.data.success) {
         setIsEmailSend(true);
       } else {
         setErrMsg(response.data);
       }
     } catch (error) {
-      // console.log(error);
       setErrMsg(error.message);
     }
   };
 
   return (
-    <div className="box-container">
-      <div>
-        <p>Reset Password</p>
-      </div>
+    <AuthLayout
+      title="Reset password"
+      subtitle="We'll send a reset link to your email"
+    >
       {isEmailSend ? (
-        <p>Reset Link is send on email</p>
+        <div className="flex flex-col items-center gap-3 py-4 text-center">
+          <CheckCircle className="text-emerald-500" size={48} />
+          <p className="font-medium text-slate-700">
+            Reset link sent! Check your inbox.
+          </p>
+        </div>
       ) : (
-        <form onSubmit={formHandler}>
+        <form className="flex flex-col gap-4" onSubmit={formHandler}>
           <Input
             type="email"
             name="email"
-            placeholder="Enter Your email"
+            placeholder="you@example.com"
             value={email}
             setValue={setEmail}
           />
-          <div>
-            <Button text={"submit"} />
-          </div>
+          <Button type="submit" text="Send reset link" className="w-full" />
         </form>
       )}
       {errMsg && <Error message={errMsg} />}
-    </div>
+    </AuthLayout>
   );
 }
 

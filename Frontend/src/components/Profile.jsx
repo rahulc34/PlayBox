@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import Subscribe from "../components/Subscribe.jsx";
+import Subscribe from "./Subscribe.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { axiosPrivate } from "../api/axios.js";
+import UserAvatar from "./UserAvatar";
+import { formatUsername } from "../lib/format";
 
 function Profile({
   _id,
@@ -13,65 +13,56 @@ function Profile({
   subscribedToCount,
   subscribersCount,
   setUser,
-  user : userDetail,
+  user: userDetail,
 }) {
   const { user } = useAuth();
+  const isOwnProfile = user?._id === _id;
 
-  const toggleSubscribe = async () => {
-    try {
-      // console.log("tirg");
-      const response = await axiosPrivate.post(
-        `/api/v1/subscriptions/c/${_id}`
-      );
-      const data = response.data;
-      if (data.success) {
-        // console.log(data);
-        const { subscriptionCount } = data.data;
-        const newUser = {
-          ...userDetail,
-          isSubscribed: !isSubscribed,
-          subscribersCount: subscriptionCount,
-        };
-        // console.log("newuser", newUser);
-        setUser(newUser);
-      }
-    } catch (error) {
-      // console.log(error);
-    }
-  };
-  
   return (
-    <div className="profileContainer">
-      <div className="bannerWrapper">
-        <img src={coverImage} alt="banner Image" />
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="relative h-32 bg-gradient-to-br from-primary/30 to-accent/10 sm:h-40">
+        {coverImage && (
+          <img
+            src={coverImage}
+            alt=""
+            className="h-full w-full object-cover opacity-90"
+          />
+        )}
       </div>
-      <div className="profileDetailwrapper">
-        <div className="UserProfileDetailAvatar">
-          <img src={avatar} alt="" className="avatarImg" />
-        </div>
-        <div className="profileDetail">
-          <p className="username">{username}</p>
-          <span className="fullname">{fullname}</span>
-          <div className="subscribeInfo">
-            <span>
-              <p>{subscribersCount} subscribers</p>
-              <p>{subscribedToCount} subscribed</p>
-            </span>
-            {/* <span>{videosCount} videos</span> */}
-            {user._id !== _id && isSubscribed !== undefined && (
-              <button className="subscribe" onClick={toggleSubscribe}>
-                {isSubscribed === true ? "unsubscribe" : "Subscribe"}
-              </button>
-            )}
+      <div className="relative px-4 pb-6 sm:px-6">
+        <div className="-mt-10 flex flex-wrap items-end justify-between gap-4">
+          <div className="flex items-end gap-4">
+            <div className="rounded-full ring-4 ring-card">
+              <UserAvatar src={avatar} name={fullname || username} size="2xl" />
+            </div>
+            <div className="pb-1">
+              <h1 className="font-display text-xl font-bold text-foreground">
+                {formatUsername(username)}
+              </h1>
+              <p className="text-muted-foreground">{fullname}</p>
+            </div>
           </div>
+          {!isOwnProfile && _id && (
+            <Subscribe
+              isSubscribed={isSubscribed}
+              userId={_id}
+              setTotalSubscription={(count) =>
+                setUser({ ...userDetail, subscribersCount: count })
+              }
+            />
+          )}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-6 text-sm text-muted-foreground">
+          <span>
+            <strong className="text-foreground">{subscribersCount ?? 0}</strong>{" "}
+            subscribers
+          </span>
+          <span>
+            <strong className="text-foreground">{subscribedToCount ?? 0}</strong>{" "}
+            subscribed
+          </span>
         </div>
       </div>
-
-      {user._id !== _id && isSubscribed !== undefined && (
-        <button className="subscribe" onClick={toggleSubscribe}>
-          {isSubscribed === true ? "unsubscribe" : "Subscribe"}
-        </button>
-      )}
     </div>
   );
 }

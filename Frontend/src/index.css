@@ -1,27 +1,80 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  text-decoration: none;
-}
-body {
-  font-family: "Segoe UI", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  /* height: 100vh;
-  width: 100vw; */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap");
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-ring: var(--ring);
+  --color-glow: var(--glow);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
 }
 
-#root {
-  max-width: 1280px;
-  position: relative;
-  margin: auto;
-  background-color: #f8fafd;
-  color: #1f1f1f;
+:root {
+  --background: #faf9fc;
+  --foreground: #1a1625;
+  --card: #ffffff;
+  --card-foreground: #1a1625;
+  --muted: #ebe6f4;
+  --muted-foreground: #6b6280;
+  --border: #ddd6eb;
+  --input: #ebe6f4;
+  --primary: #7c3aed;
+  --primary-foreground: #ffffff;
+  --accent: #f59e0b;
+  --accent-foreground: #1a1625;
+  --ring: #a78bfa;
+  --glow: rgba(124, 58, 237, 0.15);
 }
 
-.error {
-  padding: 2px 8px;
-  border-radius: 4px;
-  color: red;
-  font-size: 0.9rem;
-  background-color: rgb(204, 198, 198);
+.dark {
+  --background: #0f0d16;
+  --foreground: #f0ecf9;
+  --card: #1a1625;
+  --card-foreground: #f0ecf9;
+  --muted: #252033;
+  --muted-foreground: #9d94b0;
+  --border: #2e2840;
+  --input: #252033;
+  --primary: #9f67ff;
+  --primary-foreground: #ffffff;
+  --accent: #fbbf24;
+  --accent-foreground: #1a1625;
+  --ring: #7c3aed;
+  --glow: rgba(159, 103, 255, 0.2);
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+
+  #root {
+    @apply min-h-screen w-full;
+  }
+
+  a {
+    @apply no-underline;
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
 }

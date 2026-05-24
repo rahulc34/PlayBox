@@ -1,10 +1,6 @@
-import React from "react";
-import { axiosPrivate } from "../api/axios";
 import { useEffect, useState } from "react";
+import { axiosPrivate } from "../api/axios";
 import VideoCard from "./VideoCard.jsx";
-import "../cssStyles/VideoCard.css";
-import axios from "axios";
-import { useParams } from "react-router-dom";
 import EmptyPage from "./EmptyPage.jsx";
 import UserHeader from "./UserHeader.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -15,28 +11,15 @@ import Filter from "./Filter.jsx";
 import CenterDiv from "./CenterDiv.jsx";
 
 function VideoList({ userId }) {
-  // const {
-  //   page = 1,
-  //   limit = 10,
-  //   sortType = "desc", "asc"
-  //   sortBy = "createdAt",views, likes
-  //   upload date // last hour, today, this weeks, this month, this year
-  //   duration, "short", "medium", "long"
-  //   userId,
-  //   query,
-  // } = req.query;
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [videos, setVideos] = useState(null);
-
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
-
   const [uploadDate, setUploadDate] = useState("");
   const [duration, setDuration] = useState("");
   const [sortType, setSortType] = useState("desc");
   const [sortBy, setShortBy] = useState("");
-  // const [selectContentType, setContentType] = useState("video")
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -66,13 +49,10 @@ function VideoList({ userId }) {
         setVideos(fetchedVideos);
       }
       setLoading(false);
-      setError(false);
-    } catch (error) {
-      // console.log(error);
+    } catch (err) {
       setLoading(false);
       setError(true);
-      setErrorMsg(error.response.data.message);
-      console.log(error.response.data.message);
+      setErrorMsg(err.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -86,36 +66,44 @@ function VideoList({ userId }) {
         <EmptyPage title={errorMsg} />
       </CenterDiv>
     );
-    
+
   return (
     <>
       {userId === user._id && (
         <UserHeader title="Videos" count={videos?.length} isClose={setOpen} />
       )}
-      <Filter
-        setUploadDate={setUploadDate}
-        setDuration={setDuration}
-        setShortBy={setShortBy}
-        getVideos={getVideos}
-      />
-      <Pagination
-        page={page}
-        setPage={setPage}
-        setTotalPage={setTotalPage}
-        totalPage={totalPage}
-      />
-      <div className="grid-container">
-        {videos &&
-          videos.map((video) => <VideoCard {...video} key={video._id} />)}
-        {!videos && !videos?.length && userId && (
-          <CenterDiv>
-            <EmptyPage
-              title="No Video found"
-              desc="this channel has yet to upload videos"
-            />
-          </CenterDiv>
-        )}
+
+      <div className="flex flex-wrap items-end justify-between gap-4 py-5">
+        <Filter
+          setUploadDate={setUploadDate}
+          setDuration={setDuration}
+          setShortBy={setShortBy}
+          getVideos={getVideos}
+        />
+        <Pagination page={page} setPage={setPage} totalPage={totalPage} />
       </div>
+
+      {loading && !videos && (
+        <div className="flex justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-8 pb-10 sm:grid-cols-2 xl:grid-cols-3">
+        {videos?.map((video) => (
+          <VideoCard {...video} key={video._id} />
+        ))}
+      </div>
+
+      {!videos?.length && userId && (
+        <CenterDiv>
+          <EmptyPage
+            title="No videos found"
+            desc="This channel hasn't uploaded any videos yet."
+          />
+        </CenterDiv>
+      )}
+
       <Model isClose={setOpen} isOpen={open}>
         <VideoModel />
       </Model>

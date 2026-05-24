@@ -1,62 +1,61 @@
-import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import "../cssStyles/signUp.css";
-import Input from "../components/Input";
-import Button from "../components/Button";
+import AuthLayout from "../components/ui/AuthLayout";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 import Error from "../components/Error";
 
 function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isAuthenticated, error } = useAuth();
+  const { login, error } = useAuth();
 
   return (
-    <div className="box-container">
-      <div>
-        <p>PlayBox</p>
-      </div>
-
-      <h2>Login</h2>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to continue watching"
+      footer={
+        <>
+          Don&apos;t have an account?{" "}
+          <Link to="/signup" className="font-semibold text-violet-600 hover:underline">
+            Sign up
+          </Link>
+        </>
+      }
+    >
       <form
+        className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          const credentials = { password, email };
-          login({ credentials }, navigate);
+          login({ credentials: { password, email } }, navigate);
         }}
       >
-        <p>Please enter your details</p>
         <Input
           type="email"
           name="email"
-          placeholder="Enter Your email"
+          placeholder="you@example.com"
           value={email}
           setValue={setEmail}
         />
         <Input
           type="password"
           name="password"
-          placeholder="Enter Your password"
+          placeholder="Your password"
           value={password}
           setValue={setPassword}
         />
-        <div>
-          <Link to="/forgetPassword">Forgot Password</Link>
-        </div>
-        <div>
-          <Button text={"submit"} />
-        </div>
-        <div>
-          <div>
-            don't have an account ?{" "}
-            <span onClick={() => navigate("/signup")}>Signup </span>
-          </div>
-        </div>
+        <Link
+          to="/forgetPassword"
+          className="text-sm font-medium text-violet-600 hover:underline"
+        >
+          Forgot password?
+        </Link>
+        <Button type="submit" text="Sign in" className="w-full" />
       </form>
       {error && <Error message={error} />}
-    </div>
+    </AuthLayout>
   );
 }
 

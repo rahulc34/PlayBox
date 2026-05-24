@@ -1,248 +1,223 @@
-import React, { useState } from "react";
-import "../cssStyles/CreatePlaylist.css";
+import { useState } from "react";
 import { axiosPrivate } from "../api/axios";
+import Button from "../components/ui/Button";
+import {
+  FormLabel,
+  FormInput,
+  FormTextarea,
+  FormFileInput,
+  VisibilityToggle,
+  ModalStatus,
+} from "../components/ui/FormField";
 
 function VideoModel({ state, video, setChannelVideo }) {
   const [videoFile, setVideoFile] = useState("");
   const [videoThumbnail, setVideoThumbnail] = useState("");
   const [title, setTitle] = useState(video?.title || "");
   const [desc, setDesc] = useState(video?.description || "");
-  const [isPrivate, setIsPrivate] = useState(
-    video?.isPublished ? "public" : "private"
+  const [visibility, setVisibility] = useState(
+    video?.isPublished !== false ? "public" : "private"
   );
   const [isError, setIsError] = useState("");
   const [loading, setLoading] = useState(false);
   const [onSuccess, setOnSuccess] = useState(false);
   const [progressBar, setProgressBar] = useState(0);
 
+  const isEdit = state === "editVideo";
+
   const updateVideo = async () => {
-    if (!title && !description) {
-      setIsError("please enter the title and description");
+    if (!title?.trim() || !desc?.trim()) {
+      setIsError("Please enter title and description");
       return;
     }
-
     const formData = new FormData();
     const credentials = {
-      thumbnail: videoThumbnail,
       title,
       description: desc,
-      isPublished: isPrivate !== "private",
+      isPublished: visibility === "public",
     };
-    // console.log("credentials", credentials);
-    for (let key in credentials) {
-      formData.append(key, credentials[key]);
+    if (videoThumbnail) credentials.thumbnail = videoThumbnail;
+    for (const key in credentials) {
+      if (credentials[key]) formData.append(key, credentials[key]);
     }
     try {
       setLoading(true);
       setOnSuccess(false);
-      // console.log("sending ....");
       const response = await axiosPrivate.patch(
         `/api/v1/videos/${video._id}`,
         formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
       if (response.data.success) {
-        setOnSuccess(response.data.message);
+        setOnSuccess(true);
         const newUpdatedVideo = response.data.data;
-        setChannelVideo((prev) => {
-          return prev.map((videodetail) =>
-            videodetail._id === video._id ? newUpdatedVideo : videodetail
-          );
-        });
+        setChannelVideo?.((prev) =>
+          prev.map((v) => (v._id === video._id ? newUpdatedVideo : v))
+        );
       }
       setLoading(false);
-    } catch (error) {
-      // console.log(error);
+    } catch (err) {
       setLoading(false);
-      setIsError(error.response?.data?.message);
+      setIsError(err.response?.data?.message || "Update failed");
     }
   };
 
   const uploadVideo = async () => {
     if (!videoThumbnail || !videoFile) {
-      setIsError("File is missing");
+      setIsError("Video and thumbnail are required");
       return;
     }
-
     const formData = new FormData();
-    const credentials = {
-      videoFile,
-      thumbnail: videoThumbnail,
-      title,
-      description: desc,
-      isPublished: isPrivate !== "private",
-    };
-
-    for (let key in credentials) {
-      formData.append(key, credentials[key]);
-    }
+    formData.append("videoFile", videoFile);
+    formData.append("thumbnail", videoThumbnail);
+    formData.append("title", title);
+    formData.append("description", desc);
+    formData.append("isPublished", visibility === "public");
     try {
       setLoading(true);
       setOnSuccess(false);
       const response = await axiosPrivate.post(`/api/v1/videos`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (event) => {
           const percent = Math.round((event.loaded * 100) / event.total);
           setProgressBar(percent);
         },
       });
-      // console.log(response);
       if (response.data.success) {
-        setOnSuccess(response.data.message);
-        const data = response.data.data;
-        setChannelVideo((prev) => [...prev, data]);
+        setOnSuccess(true);
+        setChannelVideo?.((prev) => [...(prev || []), response.data.data]);
       }
       setLoading(false);
-    } catch (error) {
-      // console.log(error);
+    } catch (err) {
       setLoading(false);
-      setIsError(error.response?.data?.message);
+      setIsError(err.response?.data?.message || "Upload failed");
     }
   };
 
   const videoFileHandler = (e) => {
-    const { size, type, name } = e.target.files[0];
-    const allowedFileType = ["video/mp4", "video/mov", "video/3gpp/jpeg"];
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["video/mp4", "video/quicktime", "video/3gpp"];
     const maxsize = 15 * 1024 * 1024;
-    if (allowedFileType.includes(type) && size < maxsize) {
-      setVideoFile(e.target.files[0]);
+    if (allowed.includes(file.type) && file.size < maxsize) {
+      setVideoFile(file);
+      setIsError("");
     } else {
-      size >= maxsize
-        ? setIsError("video File is Too Large")
-        : setIsError("Invalid video File type");
+      setIsError(
+        file.size >= maxsize ? "Video file is too large (max 15 MB)" : "Invalid video type"
+      );
     }
   };
 
   const thumbnailFileHandler = (e) => {
-    const { size, type, name } = e.target.files[0];
-    const allowedFileType = ["image/png", "image/jpg", "image/jpeg"];
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/png", "image/jpg", "image/jpeg"];
     const maxsize = 10 * 1024 * 1024;
-    if (allowedFileType.includes(type) && size < maxsize) {
-      setVideoThumbnail(e.target.files[0]);
+    if (allowed.includes(file.type) && file.size < maxsize) {
+      setVideoThumbnail(file);
+      setIsError("");
     } else {
-      size >= maxsize
-        ? setIsError("image File is Too Large")
-        : setIsError("Invalid image File type");
+      setIsError(
+        file.size >= maxsize ? "Image is too large (max 10 MB)" : "Invalid image type"
+      );
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <h1>
-        {progressBar === "100" ? "uploading to cloudinary..." : progressBar}
-      </h1>
-    );
-  if (onSuccess) return <h2>{onSuccess}</h2>;
-
-  return (
-    <>
-      <div className="createPlaylistWrapper">
-        <p>{state === "editVideo" ? "Edit" : "Upload"} video</p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (state === "editVideo") updateVideo();
-            else uploadVideo();
-          }}
-        >
-          {state !== "editVideo" && (
-            <div className="inputContainer">
-              <span>Video file</span>
-              <input
-                type="file"
-                required
-                accept="video/*"
-                onChange={(e) => {
-                  setIsError("");
-                  videoFileHandler(e);
-                }}
-                // style={{ border: "1px solid red" }}
-              />
-              <ul>
-                <li>File should be mp4/mov/3gp</li>
-                <li>max size 15mb</li>
-              </ul>
-            </div>
-          )}
-
-          <div className="inputContainer">
-            <span>Thumbnail</span>
-            <input
-              type="file"
-              required={state !== "editVideo"}
-              accept="image/*"
-              onChange={(e) => {
-                setIsError("");
-                const { size, type, name } = e.target.files[0];
-                // console.log(size, type, name);
-                thumbnailFileHandler(e);
-              }}
-              // style={{ border: "1px solid " }}
+      <div className="flex flex-col items-center gap-3 py-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        <p className="text-sm text-muted-foreground">
+          {progressBar >= 100
+            ? "Processing upload…"
+            : progressBar > 0
+              ? `Uploading ${progressBar}%`
+              : "Starting upload…"}
+        </p>
+        {progressBar > 0 && progressBar < 100 && (
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-all"
+              style={{ width: `${progressBar}%` }}
             />
-            <ul>
-              <li>File should be png/jpg/jpeg</li>
-              <li>max size 10mb</li>
-            </ul>
-          </div>
-          <div className="inputContainer">
-            <span>Title</span>
-            <input
-              type="input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div className="inputContainer">
-            <span>Description</span>
-            <input
-              type="input"
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              required
-            />
-          </div>
-          <div className="inputContainer">
-            <label htmlFor="private" className="private">
-              Private
-            </label>
-            <input
-              type="radio"
-              id="private"
-              checked={isPrivate === "private"}
-              onChange={(e) => {
-                setIsPrivate("private");
-              }}
-            />
-            <label htmlFor="public" className="private">
-              Public
-            </label>
-            <input
-              type="radio"
-              id="public"
-              checked={isPrivate === "public"}
-              onChange={(e) => {
-                setIsPrivate("public");
-              }}
-            />
-          </div>
-          <div className="btncontainer">
-            <button className="create">Upload</button>
-          </div>
-        </form>
-        {isError && (
-          <div className="error" style={{ maxWidth: "300px" }}>
-            {isError}
           </div>
         )}
       </div>
-    </>
+    );
+  }
+
+  if (onSuccess) {
+    return (
+      <ModalStatus
+        success
+        successText={isEdit ? "Video updated successfully" : "Video uploaded successfully"}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <h2 className="font-display text-lg font-bold text-foreground">
+        {isEdit ? "Edit video" : "Upload video"}
+      </h2>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (isEdit) updateVideo();
+          else uploadVideo();
+        }}
+      >
+        {!isEdit && (
+          <div className="space-y-1.5">
+            <FormLabel>Video file</FormLabel>
+            <FormFileInput
+              required
+              accept="video/mp4,video/quicktime,video/3gpp"
+              onChange={videoFileHandler}
+            />
+            <p className="text-xs text-muted-foreground">MP4 or MOV, max 15 MB</p>
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <FormLabel>Thumbnail</FormLabel>
+          <FormFileInput
+            required={!isEdit}
+            accept="image/png,image/jpeg,image/jpg"
+            onChange={thumbnailFileHandler}
+          />
+          <p className="text-xs text-muted-foreground">PNG or JPG, max 10 MB</p>
+        </div>
+        <div className="space-y-1.5">
+          <FormLabel htmlFor="video-title">Title</FormLabel>
+          <FormInput
+            id="video-title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <FormLabel htmlFor="video-desc">Description</FormLabel>
+          <FormTextarea
+            id="video-desc"
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            required
+            rows={3}
+          />
+        </div>
+        <VisibilityToggle value={visibility} onChange={setVisibility} />
+        <Button
+          type="submit"
+          className="w-full"
+          text={isEdit ? "Save changes" : "Upload video"}
+        />
+      </form>
+      {isError && <ModalStatus error={isError} />}
+    </div>
   );
 }
 

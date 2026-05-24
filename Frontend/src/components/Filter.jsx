@@ -1,92 +1,100 @@
-import React, { useState } from "react";
-import "../cssStyles/Filter.css";
-import filterIcon from "../assests/filterIcon.png";
+import { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
+import { cn } from "../lib/cn";
 
 function Filter({ setUploadDate, setDuration, setShortBy, getVideos }) {
-  const [showFilter, setShowFilter] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
+
+  const fields = [
+    {
+      id: "type",
+      label: "Type",
+      defaultValue: "video",
+      options: [{ value: "video", label: "Video" }],
+    },
+    {
+      id: "uploadDate",
+      label: "Upload date",
+      onChange: setUploadDate,
+      options: [
+        { value: "hour", label: "Last hour" },
+        { value: "today", label: "Today" },
+        { value: "week", label: "This week" },
+        { value: "month", label: "This month" },
+        { value: "year", label: "This year" },
+      ],
+    },
+    {
+      id: "shortBy",
+      label: "Sort by",
+      onChange: setShortBy,
+      options: [
+        { value: "CreatedAt", label: "Upload date" },
+        { value: "views", label: "Views" },
+      ],
+    },
+    {
+      id: "duration",
+      label: "Duration",
+      onChange: setDuration,
+      options: [
+        { value: "short", label: "Under 4 minutes" },
+        { value: "medium", label: "4–20 minutes" },
+        { value: "long", label: "Over 20 minutes" },
+      ],
+    },
+  ];
+
   return (
-    <>
-      <div className="filter">
-        <button
-          className="open"
-          onClick={() => setShowFilter((prev) => !prev)}
-          style={{
-            border: "none",
-            backgroundColor: "inherit",
-            marginLeft: "18px",
-          }}
-        >
-          <img src={filterIcon} alt="filter" width="20px" />
-        </button>
-        <div className={"filterWrapper" + (showFilter ? " disablefilter" : "")}>
-          <div>
-            <label htmlFor="type">TYPE</label>
-            <select name="" id="type">
-              <option value="video">Video</option>
-              {/* <option value="channel">Channel</option>
-              <option value="playlist">Playlist</option> */}
-            </select>
-          </div>
-          <div>
+    <div className="relative flex-1">
+      <button
+        type="button"
+        aria-label="Toggle filters"
+        aria-expanded={showFilter}
+        onClick={() => setShowFilter((prev) => !prev)}
+        className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground hover:bg-muted lg:hidden"
+      >
+        <SlidersHorizontal size={18} />
+      </button>
+
+      <div
+        className={cn(
+          "flex flex-wrap items-end gap-3",
+          "max-lg:absolute max-lg:left-0 max-lg:right-0 max-lg:top-full max-lg:z-50 max-lg:mt-2 max-lg:rounded-2xl max-lg:border max-lg:border-border max-lg:bg-card max-lg:p-4 max-lg:shadow-xl",
+          !showFilter && "max-lg:hidden"
+        )}
+      >
+        {fields.map(({ id, label, options, onChange, defaultValue }) => (
+          <div key={id} className="flex min-w-[130px] flex-1 flex-col gap-1.5">
             <label
-              htmlFor="uploadDate"
-              onClick={(e) => {
-                setUploadDate(e.target.value);
-              }}
+              htmlFor={id}
+              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
             >
-              UPLOAD DATE
+              {label}
             </label>
             <select
-              name=""
-              id="uploadDate"
-              onChange={(e) => {
-                setUploadDate(e.target.value);
-              }}
+              id={id}
+              defaultValue={defaultValue}
+              onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+              className="rounded-xl border border-border bg-input px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:outline-none focus:ring-4 focus:ring-ring/30"
             >
-              <option value="hour">Last hour</option>
-              <option value="today">Today</option>
-              <option value="week">This week</option>
-              <option value="month">This month</option>
-              <option value="year">This year</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
           </div>
-          <div>
-            <label htmlFor="shortBy">SHORT BY</label>
-            <select
-              id="shortBy"
-              onChange={(e) => {
-                setShortBy(e.target.value);
-              }}
-            >
-              <option value="CreatedAt">Upload date</option>
-              <option value="views">Views</option>
-            </select>
-          </div>
-          <div>
-            <label htmlFor="duration">Duration</label>
-            <select
-              name=""
-              id="duration"
-              onChange={(e) => {
-                setDuration(e.target.value);
-              }}
-            >
-              <option value="short">Under 4 minutes</option>
-              <option value="medium">Above 4 min and below 20 min</option>
-              <option value="long">Above 20 minutes</option>
-            </select>
-          </div>
-          <button
-            className="applyFilter"
-            onClick={() => {
-              getVideos();
-            }}
-          >
-            Apply
-          </button>
-        </div>
+        ))}
+        <button
+          type="button"
+          onClick={getVideos}
+          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/25 transition hover:opacity-90"
+        >
+          Apply
+        </button>
       </div>
-    </>
+    </div>
   );
 }
 

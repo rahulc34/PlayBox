@@ -1,156 +1,142 @@
-import React, { useState } from "react";
-import "../cssStyles/CreatePlaylist.css";
+import { useState } from "react";
 import { axiosPrivate } from "../api/axios";
+import Button from "../components/ui/Button";
+import {
+  FormLabel,
+  FormInput,
+  FormTextarea,
+  VisibilityToggle,
+  ModalStatus,
+} from "../components/ui/FormField";
 
 function CreatePlaylist({
   state,
   playlistId,
   setPlaylists,
-  playlists,
+  playlists = [],
   setPlaylistDetail,
   playlistDetail,
+  onSuccess,
 }) {
   const [title, setTitle] = useState(playlistDetail?.name || "");
   const [description, setDescription] = useState(
     playlistDetail?.description || ""
   );
-  const [isPrivate, setIsPrivate] = useState(
+  const [visibility, setVisibility] = useState(
     playlistDetail?.isPrivate ? "private" : "public"
   );
   const [loading, setLoading] = useState(false);
-  const [created, setcreated] = useState(false);
+  const [created, setCreated] = useState(false);
   const [error, setError] = useState("");
 
   const editPlaylist = async () => {
     try {
       setLoading(true);
-      setcreated(false);
+      setCreated(false);
       setError("");
       const content = {
         name: title,
         description,
-        isPrivate: isPrivate === "private",
+        isPrivate: visibility === "private",
       };
-
       const response = await axiosPrivate.patch(
         `/api/v1/playlist/${playlistId}`,
         content
       );
       if (response.data.success) {
-        setcreated(true);
-        setPlaylistDetail({ ...playlistDetail, ...content });
+        setCreated(true);
+        setPlaylistDetail?.({ ...playlistDetail, ...content });
+        onSuccess?.();
       }
       setLoading(false);
-    } catch (error) {
+    } catch (err) {
       setLoading(false);
-      setError(error.response.data.message);
+      setError(err.response?.data?.message || "Failed to update collection");
     }
   };
 
   const submitHandler = async () => {
     try {
       setLoading(true);
-      setcreated(false);
+      setCreated(false);
       setError("");
       const content = {
         name: title,
         description,
-        isPrivate: isPrivate === "private",
+        isPrivate: visibility === "private",
       };
       const response = await axiosPrivate.post("/api/v1/playlist", content);
       const data = response.data;
       if (data.success && data.data) {
-        setcreated(true);
+        setCreated(true);
         const { _id, name, description, owner } = data.data;
-        const createdPlaylist = {
-          _id,
-          name,
-          description,
-          owner,
-          totalVideos: 0,
-        };
-        setPlaylists([...playlists, createdPlaylist]);
+        setPlaylists?.([
+          ...playlists,
+          { _id, name, description, owner, totalVideos: 0 },
+        ]);
+        onSuccess?.();
       }
       setLoading(false);
-    } catch (error) {
+    } catch (err) {
       setLoading(false);
-      setError(error.response.data.message);
+      setError(err.response?.data?.message || "Failed to create collection");
     }
   };
 
-  if (created) {
-    return state === "edit" ? (
-      <h2>Playlist edited successfully</h2>
-    ) : (
-      <h1>Playlist is created successfully</h1>
+  if (loading || created) {
+    return (
+      <ModalStatus
+        loading={loading}
+        success={created}
+        loadingText={state === "edit" ? "Saving…" : "Creating…"}
+        successText={
+          state === "edit"
+            ? "Collection updated successfully"
+            : "Collection created successfully"
+        }
+      />
     );
   }
 
-  if (loading) return <h1>Loading...</h1>;
-
   return (
-    <div className="createPlaylistWrapper">
-      <p>{state === "edit" ? "Edit" : "New"} Playlist</p>
+    <div className="space-y-4">
+      <h2 className="font-display text-lg font-bold text-foreground">
+        {state === "edit" ? "Edit collection" : "New collection"}
+      </h2>
       <form
+        className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (state === "edit") editPlaylist();
           else submitHandler();
         }}
       >
-        <div className="inputContainer">
-          <span>Title</span>
-          <input
+        <div className="space-y-1.5">
+          <FormLabel htmlFor="playlist-title">Title</FormLabel>
+          <FormInput
+            id="playlist-title"
             type="text"
             value={title}
             required
+            placeholder="My favorites"
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
-        <div className="inputContainer">
-          <span>Description</span>
-          <input
-            type="text"
+        <div className="space-y-1.5">
+          <FormLabel htmlFor="playlist-desc">Description</FormLabel>
+          <FormTextarea
+            id="playlist-desc"
             value={description}
             required
+            rows={3}
+            placeholder="What's this collection about?"
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div className="inputContainer">
-          <label htmlFor="private" className="private">
-            Private
-          </label>
-          <input
-            type="radio"
-            id="private"
-            checked={isPrivate === "private"}
-            onChange={(e) => {
-              setIsPrivate("private");
-            }}
-          />
-          <label htmlFor="public" className="private">
-            Public
-          </label>
-          <input
-            type="radio"
-            id="public"
-            checked={isPrivate === "public"}
-            onChange={(e) => {
-              setIsPrivate("public");
-            }}
-          />
-        </div>
-        <div className="btncontainer">
-          <button className="create">
-            {state === "edit" ? "Edit" : "Create"}
-          </button>
-        </div>
+        <VisibilityToggle value={visibility} onChange={setVisibility} />
+        <Button type="submit" className="w-full" text={state === "edit" ? "Save changes" : "Create collection"} />
       </form>
-      {error && (
-        <div className="error" style={{ maxWidth: "220px" }}>
-          {error}
-        </div>
-      )}
+      {error && <ModalStatus error={error} />}
     </div>
   );
 }

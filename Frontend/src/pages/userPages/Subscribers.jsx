@@ -1,73 +1,61 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { axiosPrivate } from "../../api/axios.js";
-import { useEffect } from "react";
-import { useState } from "react";
-import "../../cssStyles/Subscribe.css";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import EmptyPage from "../../components/EmptyPage.jsx";
-import { useNavigate } from "react-router-dom";
-import Subscribe from "../../components/Subscribe.jsx";
 import CenterDiv from "../../components/CenterDiv.jsx";
+import ChannelListItem from "../../components/ChannelListItem.jsx";
+import PageHeader from "../../components/PageHeader.jsx";
 
 function Subscribers({ userId }) {
   const { user } = useAuth();
-  const [subscribers, setSubscribers] = useState("");
-  const navigate = useNavigate();
+  const [subscribers, setSubscribers] = useState(null);
 
   const getSubscribers = async () => {
     try {
       const response = await axiosPrivate.get(
         `/api/v1/subscriptions/c/${userId || user._id}`
       );
-
-      const data = response.data;
-      if (data.success) {
-        setSubscribers(data.data);
+      if (response.data.success) {
+        setSubscribers(response.data.data || []);
       }
-    } catch (error) {
-      // console.log(error);
+    } catch {
+      setSubscribers([]);
     }
   };
 
   useEffect(() => {
     getSubscribers();
-  }, []);
+  }, [userId, user._id]);
 
   return (
-    <div className="subscribeWrapper">
-      {subscribers &&
-        subscribers.map(({ _id, username, fullname, avatar, isSubscribed }) => {
-          return (
-            <div className="subscribeCard" key={_id}>
-              <div
-                className="profile"
-                onClick={() => navigate(`/user/${username}`)}
-              >
-                <div className="profile-container">
-                  {avatar && (
-                    <img
-                      src={avatar}
-                      alt="profile picture"
-                      className="profile"
-                    />
-                  )}
-                </div>
-                <div className="info">
-                  <span className="info-upper">{username}</span>
-                  <span className="info-lower">{fullname}</span>
-                </div>
-              </div>
-              {user._id !== _id && isSubscribed !== undefined && (
-                <Subscribe isSubscribed={isSubscribed} userId={_id} />
-              )}
-            </div>
-          );
-        })}
-      {!subscribers.length && (
+    <div>
+      <PageHeader
+        title="Subscribers"
+        subtitle={
+          subscribers?.length
+            ? `${subscribers.length} follower${subscribers.length === 1 ? "" : "s"}`
+            : "People who follow this channel"
+        }
+      />
+      {subscribers === null ? (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      ) : subscribers.length > 0 ? (
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          {subscribers.map((sub) => (
+            <ChannelListItem
+              key={sub._id}
+              {...sub}
+              showSubscribe={user._id !== sub._id}
+            />
+          ))}
+        </div>
+      ) : (
         <CenterDiv>
           <EmptyPage
-            title="No subscribers"
-            desc="No one has subscribed this channel"
+            title="No subscribers yet"
+            desc="When people subscribe to your channel, they'll show up here."
           />
         </CenterDiv>
       )}

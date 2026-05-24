@@ -1,12 +1,8 @@
-import React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { axiosPrivate } from "../api/axios";
-import { useEffect } from "react";
-import dislikelogo from "../assests/thumb.png";
-import likelogo from "../assests/like.png";
-import deleteIcon from "../assests/delete.png";
 import { useAuth } from "../contexts/AuthContext";
 import PostCreate from "./PostCreate";
+import CommentItem from "./CommentItem";
 
 function CommentReply({ commentId, setComment, videoId }) {
   const { user } = useAuth();
@@ -20,16 +16,13 @@ function CommentReply({ commentId, setComment, videoId }) {
       if (response.data.success) {
         const { likes } = response.data.data || {};
         setReply((prev) =>
-          prev.map((comment) => {
-            if (comment._id === replyId) {
-              const likedby = comment.likedby;
-              const newcomment = { ...comment, likedby: !likedby, likes };
-              return newcomment;
-            } else return comment;
-          })
+          prev.map((r) =>
+            r._id === replyId ? { ...r, likedby: !r.likedby, likes } : r
+          )
         );
       }
-    } catch (error) {
+    } catch {
+      /* ignore */
     }
   };
 
@@ -38,11 +31,18 @@ function CommentReply({ commentId, setComment, videoId }) {
       const response = await axiosPrivate.delete(
         `/api/v1/comments/c/${replyId}`
       );
-
       if (response.data.success) {
         setReply((prev) => prev.filter((com) => com._id !== replyId));
+        setComment((prev) =>
+          prev.map((com) =>
+            com._id === commentId
+              ? { ...com, reply: Math.max(0, (com.reply || 1) - 1) }
+              : com
+          )
+        );
       }
-    } catch (error) {
+    } catch {
+      /* ignore */
     }
   };
 
@@ -52,7 +52,8 @@ function CommentReply({ commentId, setComment, videoId }) {
       if (respone.data.success) {
         setReply(respone.data.data?.comments || []);
       }
-    } catch (error) {
+    } catch {
+      /* ignore */
     }
   };
 
@@ -60,24 +61,30 @@ function CommentReply({ commentId, setComment, videoId }) {
     try {
       const response = await axiosPrivate.post(
         `/api/v1/comments/${videoId}/${commentId}`,
-        {
-          content,
-        }
+        { content }
       );
       if (response.data.success) {
         const newReply = response.data.data;
         const { username, avatar } = user;
         setReply([
-          { ...newReply, likes: 0, likedby: false, username, avatar },
+          {
+            ...newReply,
+            likes: 0,
+            likedby: false,
+            username,
+            avatar,
+            owner: user._id,
+          },
           ...reply,
         ]);
         setComment((prev) =>
-          prev.filter((com) =>
-            com._id === commentId ? { ...com, reply: com.reply + 1 } : com
+          prev.map((com) =>
+            com._id === commentId ? { ...com, reply: (com.reply || 0) + 1 } : com
           )
         );
       }
-    } catch (error) {
+    } catch {
+      /* ignore */
     }
   };
 
@@ -86,91 +93,23 @@ function CommentReply({ commentId, setComment, videoId }) {
   }, [commentId]);
 
   return (
-    <div>
-      <div
-        style={{
-          margin: "10px",
-        }}
-      >
-        <PostCreate submitHandler={replyHandler} />
-      </div>
-      {reply?.length > 0 &&
-        reply.map(
-          ({
-            _id,
-            avatar,
-            content,
-            createdAt,
-            username,
-            likedby,
-            likes,
-            owner,
-          }) => {
-            const likeBtnUrl = likedby ? likelogo : dislikelogo;
-
-            return (
-              <div style={{ display: "flex", margin: "18px 0" }} key={_id}>
-                <div
-                  className="profile-container"
-                  style={{ boxShadow: "none", margin: "10px" }}
-                >
-                  <img src={avatar} alt="sdf" className="profile" />
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: "0.8rem",
-                      fontWeight: "700",
-                    }}
-                  >
-                    <p>{username}</p>
-                    <p style={{ padding: "0 8px", fontSize: "0.7rem" }}>
-                      {new Date(createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p>{content}</p>
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "10px",
-                        alignItems: "center",
-                      }}
-                    >
-                      <img
-                        src={likeBtnUrl}
-                        alt="like"
-                        width="20px"
-                        onClick={() => {
-                          toggleCommentLike(_id);
-                        }}
-                      />
-                      <p>{likes || 0}</p>
-                      {user._id === owner && (
-                        <button
-                          style={{
-                            border: "none",
-                            backgroundColor: "inherit",
-                            marginTop: "4px",
-                          }}
-                          onClick={() => {
-                            deleteComment(_id);
-                          }}
-                        >
-                          <img src={deleteIcon} alt="" width="17px" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-        )}
+    <div className="space-y-2 rounded-xl bg-muted/30 p-3">
+      <PostCreate submitHandler={replyHandler} placeholder="Write a reply…" />
+      {reply?.map((r) => (
+        <CommentItem
+          key={r._id}
+          isReply
+          username={r.username}
+          avatar={r.avatar}
+          content={r.content}
+          createdAt={r.createdAt}
+          likes={r.likes}
+          likedby={r.likedby}
+          isOwner={user._id === r.owner}
+          onLike={() => toggleCommentLike(r._id)}
+          onDelete={() => deleteComment(r._id)}
+        />
+      ))}
     </div>
   );
 }
