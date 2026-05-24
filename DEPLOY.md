@@ -104,6 +104,7 @@ Add a rewrite rule `/*` → `/index.html` for client-side routing.
 | Issue | Fix |
 |--------|-----|
 | Build fails on `npm ci` | Ensure `package-lock.json` is committed in `Frontend/` and `Backend/` |
+| `Cannot find package '@vitejs/plugin-react'` | Frontend build needs devDependencies; `render.yaml` uses `npm ci --prefix Frontend --include=dev` |
 | DB connection failed | Check `MONGODB_URI` and Atlas IP allowlist |
 | Login works locally, not on Render | Set `CLIENT_ORIGIN` to the exact public URL; for single-service, keep `SERVE_FRONTEND=true` |
 | 404 on refresh | Single-service serves `index.html` for non-API routes; static-only deploy needs SPA rewrite |

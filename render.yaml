@@ -9,8 +9,9 @@ services:
     name: playbox
     runtime: node
     plan: free
+    # Install Frontend devDependencies too (Vite, plugins) — Render sets NODE_ENV=production
     buildCommand: >-
-      npm ci --prefix Frontend &&
+      npm ci --prefix Frontend --include=dev &&
       npm run build --prefix Frontend &&
       npm ci --prefix Backend --omit=dev
     startCommand: npm start --prefix Backend
