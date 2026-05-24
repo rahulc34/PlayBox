@@ -54,13 +54,15 @@ These are already set in `render.yaml` (do not change unless you know why):
 
 ## 4. Deploy
 
-Render runs:
+Render runs `bash scripts/render-build.sh` (installs Vite, builds frontend, installs backend).
+
+**If the build still uses an old command** (log shows `npm ci --prefix Frontend` without `render-build.sh`), open Render → your service → **Settings** → **Build Command** and set:
 
 ```bash
-npm ci --prefix Frontend && npm run build --prefix Frontend
-npm ci --prefix Backend --omit=dev
-npm start --prefix Backend
+bash scripts/render-build.sh
 ```
+
+Or click **Sync** on the Blueprint so `render.yaml` is applied again.
 
 When the deploy succeeds, open your service URL (e.g. `https://playbox.onrender.com`).
 

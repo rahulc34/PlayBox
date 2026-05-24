@@ -9,11 +9,7 @@ services:
     name: playbox
     runtime: node
     plan: free
-    # Install Frontend devDependencies too (Vite, plugins) — Render sets NODE_ENV=production
-    buildCommand: >-
-      npm ci --prefix Frontend --include=dev &&
-      npm run build --prefix Frontend &&
-      npm ci --prefix Backend --omit=dev
+    buildCommand: bash scripts/render-build.sh
     startCommand: npm start --prefix Backend
     healthCheckPath: /api/v1/healthcheck
     envVars:
